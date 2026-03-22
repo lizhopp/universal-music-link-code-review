@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "backend for universal music link",
+  "homepage": "https://github.com/Darthlyrical/universal-music-link#readme",
+  "bugs": {
+    "url": "https://github.com/Darthlyrical/universal-music-link/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Darthlyrical/universal-music-link.git"
+  },
+  "license": "ISC",
+  "author": "Jorge Miranda",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.13.6",
+    "bcrypt": "^6.0.0",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
+    "nodemon": "^3.1.14",
+    "pg": "^8.20.0"
+  }
+}
