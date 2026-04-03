@@ -1,0 +1,1485 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dineug/erd-editor/main/json-schema/schema.json",
+  "version": "3.0.0",
+  "settings": {
+    "width": 3200,
+    "height": 2400,
+    "scrollTop": -791.6,
+    "scrollLeft": -805.6,
+    "zoomLevel": 0.5,
+    "show": 511,
+    "database": 16,
+    "databaseName": "universal_music_link",
+    "canvasType": "ERD",
+    "language": 16,
+    "tableNameCase": 8,
+    "columnNameCase": 8,
+    "bracketType": 1,
+    "relationshipDataTypeSync": true,
+    "relationshipOptimization": false,
+    "columnOrder": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "maxWidthComment": -1,
+    "ignoreSaveSettings": 0
+  },
+  "doc": {
+    "tableIds": [
+      "t_platforms",
+      "t_songs",
+      "t_users",
+      "t_preferences",
+      "t_song_links",
+      "t_conversions",
+      "t_user_saved_links"
+    ],
+    "relationshipIds": [
+      "r_preferences_user",
+      "r_preferences_default_platform",
+      "r_song_links_song",
+      "r_song_links_platform",
+      "r_conversions_user",
+      "r_conversions_source_link",
+      "r_conversions_target_link",
+      "r_conversions_requested_platform",
+      "r_user_saved_links_user",
+      "r_user_saved_links_song_link"
+    ],
+    "indexIds": [],
+    "memoIds": []
+  },
+  "collections": {
+    "tableEntities": {
+      "t_platforms": {
+        "id": "t_platforms",
+        "name": "platforms",
+        "comment": "",
+        "columnIds": [
+          "c_platforms_id",
+          "c_platforms_name",
+          "c_platforms_slug",
+          "c_platforms_base_url",
+          "c_platforms_is_active",
+          "c_platforms_created_at"
+        ],
+        "seqColumnIds": [
+          "c_platforms_id",
+          "c_platforms_name",
+          "c_platforms_slug",
+          "c_platforms_base_url",
+          "c_platforms_is_active",
+          "c_platforms_created_at"
+        ],
+        "ui": {
+          "x": 990.0523103041708,
+          "y": 468.55104063588055,
+          "zIndex": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "color": "#175fff"
+        },
+        "meta": {
+          "updateAt": 1775251890302,
+          "createAt": 1775251516174
+        }
+      },
+      "t_songs": {
+        "id": "t_songs",
+        "name": "songs",
+        "comment": "",
+        "columnIds": [
+          "c_songs_id",
+          "c_songs_title",
+          "c_songs_primary_artist",
+          "c_songs_album_name",
+          "c_songs_duration_ms",
+          "c_songs_isrc",
+          "c_songs_created_at",
+          "c_songs_updated_at"
+        ],
+        "seqColumnIds": [
+          "c_songs_id",
+          "c_songs_title",
+          "c_songs_primary_artist",
+          "c_songs_album_name",
+          "c_songs_duration_ms",
+          "c_songs_isrc",
+          "c_songs_created_at",
+          "c_songs_updated_at"
+        ],
+        "ui": {
+          "x": 1218.3711165944333,
+          "y": 1492.5040081567824,
+          "zIndex": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "color": "#175fff"
+        },
+        "meta": {
+          "updateAt": 1775251890302,
+          "createAt": 1775251516174
+        }
+      },
+      "t_users": {
+        "id": "t_users",
+        "name": "users",
+        "comment": "",
+        "columnIds": [
+          "c_users_id",
+          "c_users_email",
+          "c_users_password_hash",
+          "c_users_created_at",
+          "c_users_updated_at"
+        ],
+        "seqColumnIds": [
+          "c_users_id",
+          "c_users_email",
+          "c_users_password_hash",
+          "c_users_created_at",
+          "c_users_updated_at"
+        ],
+        "ui": {
+          "x": 1066.0403535405644,
+          "y": 978.6576614434264,
+          "zIndex": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "color": "#175fff"
+        },
+        "meta": {
+          "updateAt": 1775251890302,
+          "createAt": 1775251516174
+        }
+      },
+      "t_preferences": {
+        "id": "t_preferences",
+        "name": "preferences",
+        "comment": "",
+        "columnIds": [
+          "c_preferences_id",
+          "c_preferences_user_id",
+          "c_preferences_default_platform_id",
+          "c_preferences_created_at",
+          "c_preferences_updated_at"
+        ],
+        "seqColumnIds": [
+          "c_preferences_id",
+          "c_preferences_user_id",
+          "c_preferences_default_platform_id",
+          "c_preferences_created_at",
+          "c_preferences_updated_at"
+        ],
+        "ui": {
+          "x": 1479.167840975499,
+          "y": 623.2309288618995,
+          "zIndex": 1,
+          "widthName": 70,
+          "widthComment": 60,
+          "color": "#175fff"
+        },
+        "meta": {
+          "updateAt": 1775251890302,
+          "createAt": 1775251516174
+        }
+      },
+      "t_song_links": {
+        "id": "t_song_links",
+        "name": "song_links",
+        "comment": "",
+        "columnIds": [
+          "c_song_links_id",
+          "c_song_links_song_id",
+          "c_song_links_platform_id",
+          "c_song_links_platform_track_id",
+          "c_song_links_url",
+          "c_song_links_is_verified",
+          "c_song_links_created_at",
+          "c_song_links_updated_at"
+        ],
+        "seqColumnIds": [
+          "c_song_links_id",
+          "c_song_links_song_id",
+          "c_song_links_platform_id",
+          "c_song_links_platform_track_id",
+          "c_song_links_url",
+          "c_song_links_is_verified",
+          "c_song_links_created_at",
+          "c_song_links_updated_at"
+        ],
+        "ui": {
+          "x": 650.4506084040672,
+          "y": 1356.4915102964028,
+          "zIndex": 1,
+          "widthName": 63,
+          "widthComment": 60,
+          "color": "#175fff"
+        },
+        "meta": {
+          "updateAt": 1775251890302,
+          "createAt": 1775251516174
+        }
+      },
+      "t_conversions": {
+        "id": "t_conversions",
+        "name": "conversions",
+        "comment": "",
+        "columnIds": [
+          "c_conversions_id",
+          "c_conversions_user_id",
+          "c_conversions_source_song_link_id",
+          "c_conversions_target_song_link_id",
+          "c_conversions_source_url",
+          "c_conversions_requested_target_platform_id",
+          "c_conversions_status",
+          "c_conversions_confidence_score",
+          "c_conversions_created_at"
+        ],
+        "seqColumnIds": [
+          "c_conversions_id",
+          "c_conversions_user_id",
+          "c_conversions_source_song_link_id",
+          "c_conversions_target_song_link_id",
+          "c_conversions_source_url",
+          "c_conversions_requested_target_platform_id",
+          "c_conversions_status",
+          "c_conversions_confidence_score",
+          "c_conversions_created_at"
+        ],
+        "ui": {
+          "x": 461.20426120538025,
+          "y": 743.4619897939749,
+          "zIndex": 1,
+          "widthName": 70,
+          "widthComment": 60,
+          "color": "#175fff"
+        },
+        "meta": {
+          "updateAt": 1775251890302,
+          "createAt": 1775251516174
+        }
+      },
+      "t_user_saved_links": {
+        "id": "t_user_saved_links",
+        "name": "user_saved_links",
+        "comment": "",
+        "columnIds": [
+          "c_user_saved_links_id",
+          "c_user_saved_links_user_id",
+          "c_user_saved_links_song_link_id",
+          "c_user_saved_links_created_at"
+        ],
+        "seqColumnIds": [
+          "c_user_saved_links_id",
+          "c_user_saved_links_user_id",
+          "c_user_saved_links_song_link_id",
+          "c_user_saved_links_created_at"
+        ],
+        "ui": {
+          "x": 862.5849033412844,
+          "y": 1908.1367187035216,
+          "zIndex": 1,
+          "widthName": 99,
+          "widthComment": 60,
+          "color": "#175fff"
+        },
+        "meta": {
+          "updateAt": 1775251890302,
+          "createAt": 1775251516174
+        }
+      }
+    },
+    "tableColumnEntities": {
+      "c_platforms_id": {
+        "id": "c_platforms_id",
+        "tableId": "t_platforms",
+        "name": "id",
+        "comment": "",
+        "dataType": "serial",
+        "default": "",
+        "options": 11,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_platforms_name": {
+        "id": "c_platforms_name",
+        "tableId": "t_platforms",
+        "name": "name",
+        "comment": "",
+        "dataType": "varchar(100)",
+        "default": "",
+        "options": 12,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 74,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_platforms_slug": {
+        "id": "c_platforms_slug",
+        "tableId": "t_platforms",
+        "name": "slug",
+        "comment": "",
+        "dataType": "varchar(50)",
+        "default": "",
+        "options": 12,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 68,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_platforms_base_url": {
+        "id": "c_platforms_base_url",
+        "tableId": "t_platforms",
+        "name": "base_url",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_platforms_is_active": {
+        "id": "c_platforms_is_active",
+        "tableId": "t_platforms",
+        "name": "is_active",
+        "comment": "",
+        "dataType": "boolean",
+        "default": "true",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_platforms_created_at": {
+        "id": "c_platforms_created_at",
+        "tableId": "t_platforms",
+        "name": "created_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_songs_id": {
+        "id": "c_songs_id",
+        "tableId": "t_songs",
+        "name": "id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "gen_random_uuid()",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 114
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_songs_title": {
+        "id": "c_songs_title",
+        "tableId": "t_songs",
+        "name": "title",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_songs_primary_artist": {
+        "id": "c_songs_primary_artist",
+        "tableId": "t_songs",
+        "name": "primary_artist",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 80,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_songs_album_name": {
+        "id": "c_songs_album_name",
+        "tableId": "t_songs",
+        "name": "album_name",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 74,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_songs_duration_ms": {
+        "id": "c_songs_duration_ms",
+        "tableId": "t_songs",
+        "name": "duration_ms",
+        "comment": "",
+        "dataType": "integer",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 73,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_songs_isrc": {
+        "id": "c_songs_isrc",
+        "tableId": "t_songs",
+        "name": "isrc",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 4,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_songs_created_at": {
+        "id": "c_songs_created_at",
+        "tableId": "t_songs",
+        "name": "created_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_songs_updated_at": {
+        "id": "c_songs_updated_at",
+        "tableId": "t_songs",
+        "name": "updated_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 67,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_users_id": {
+        "id": "c_users_id",
+        "tableId": "t_users",
+        "name": "id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "gen_random_uuid()",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 114
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_users_email": {
+        "id": "c_users_email",
+        "tableId": "t_users",
+        "name": "email",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 12,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_users_password_hash": {
+        "id": "c_users_password_hash",
+        "tableId": "t_users",
+        "name": "password_hash",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 90,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_users_created_at": {
+        "id": "c_users_created_at",
+        "tableId": "t_users",
+        "name": "created_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_users_updated_at": {
+        "id": "c_users_updated_at",
+        "tableId": "t_users",
+        "name": "updated_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 67,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_preferences_id": {
+        "id": "c_preferences_id",
+        "tableId": "t_preferences",
+        "name": "id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "gen_random_uuid()",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 114
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_preferences_user_id": {
+        "id": "c_preferences_user_id",
+        "tableId": "t_preferences",
+        "name": "user_id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "",
+        "options": 12,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_preferences_default_platform_id": {
+        "id": "c_preferences_default_platform_id",
+        "tableId": "t_preferences",
+        "name": "default_platform_id",
+        "comment": "",
+        "dataType": "integer",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 114,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_preferences_created_at": {
+        "id": "c_preferences_created_at",
+        "tableId": "t_preferences",
+        "name": "created_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_preferences_updated_at": {
+        "id": "c_preferences_updated_at",
+        "tableId": "t_preferences",
+        "name": "updated_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 67,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_song_links_id": {
+        "id": "c_song_links_id",
+        "tableId": "t_song_links",
+        "name": "id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "gen_random_uuid()",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 114
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_song_links_song_id": {
+        "id": "c_song_links_song_id",
+        "tableId": "t_song_links",
+        "name": "song_id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_song_links_platform_id": {
+        "id": "c_song_links_platform_id",
+        "tableId": "t_song_links",
+        "name": "platform_id",
+        "comment": "",
+        "dataType": "integer",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 67,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_song_links_platform_track_id": {
+        "id": "c_song_links_platform_track_id",
+        "tableId": "t_song_links",
+        "name": "platform_track_id",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 103,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_song_links_url": {
+        "id": "c_song_links_url",
+        "tableId": "t_song_links",
+        "name": "url",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 12,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_song_links_is_verified": {
+        "id": "c_song_links_is_verified",
+        "tableId": "t_song_links",
+        "name": "is_verified",
+        "comment": "",
+        "dataType": "boolean",
+        "default": "false",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_song_links_created_at": {
+        "id": "c_song_links_created_at",
+        "tableId": "t_song_links",
+        "name": "created_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_song_links_updated_at": {
+        "id": "c_song_links_updated_at",
+        "tableId": "t_song_links",
+        "name": "updated_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 67,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_conversions_id": {
+        "id": "c_conversions_id",
+        "tableId": "t_conversions",
+        "name": "id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "gen_random_uuid()",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 114
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_conversions_user_id": {
+        "id": "c_conversions_user_id",
+        "tableId": "t_conversions",
+        "name": "user_id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_conversions_source_song_link_id": {
+        "id": "c_conversions_source_song_link_id",
+        "tableId": "t_conversions",
+        "name": "source_song_link_id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 2,
+          "widthName": 119,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_conversions_target_song_link_id": {
+        "id": "c_conversions_target_song_link_id",
+        "tableId": "t_conversions",
+        "name": "target_song_link_id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 2,
+          "widthName": 115,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_conversions_source_url": {
+        "id": "c_conversions_source_url",
+        "tableId": "t_conversions",
+        "name": "source_url",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 61,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_conversions_requested_target_platform_id": {
+        "id": "c_conversions_requested_target_platform_id",
+        "tableId": "t_conversions",
+        "name": "requested_target_platform_id",
+        "comment": "",
+        "dataType": "integer",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 2,
+          "widthName": 172,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_conversions_status": {
+        "id": "c_conversions_status",
+        "tableId": "t_conversions",
+        "name": "status",
+        "comment": "",
+        "dataType": "text",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_conversions_confidence_score": {
+        "id": "c_conversions_confidence_score",
+        "tableId": "t_conversions",
+        "name": "confidence_score",
+        "comment": "",
+        "dataType": "numeric(4,3)",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 103,
+          "widthComment": 60,
+          "widthDataType": 75,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_conversions_created_at": {
+        "id": "c_conversions_created_at",
+        "tableId": "t_conversions",
+        "name": "created_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_user_saved_links_id": {
+        "id": "c_user_saved_links_id",
+        "tableId": "t_user_saved_links",
+        "name": "id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "gen_random_uuid()",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 114
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_user_saved_links_user_id": {
+        "id": "c_user_saved_links_user_id",
+        "tableId": "t_user_saved_links",
+        "name": "user_id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_user_saved_links_song_link_id": {
+        "id": "c_user_saved_links_song_link_id",
+        "tableId": "t_user_saved_links",
+        "name": "song_link_id",
+        "comment": "",
+        "dataType": "uuid",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 74,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "c_user_saved_links_created_at": {
+        "id": "c_user_saved_links_created_at",
+        "tableId": "t_user_saved_links",
+        "name": "created_at",
+        "comment": "",
+        "dataType": "timestamp",
+        "default": "now()",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 60,
+          "widthDataType": 62,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      }
+    },
+    "relationshipEntities": {
+      "r_preferences_user": {
+        "id": "r_preferences_user",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "t_users",
+          "columnIds": [
+            "c_users_id"
+          ],
+          "x": 1318.0403535405644,
+          "y": 978.6576614434264,
+          "direction": 4
+        },
+        "end": {
+          "tableId": "t_preferences",
+          "columnIds": [
+            "c_preferences_user_id"
+          ],
+          "x": 1479.167840975499,
+          "y": 755.2309288618995,
+          "direction": 1
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "r_preferences_default_platform": {
+        "id": "r_preferences_default_platform",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "t_platforms",
+          "columnIds": [
+            "c_platforms_id"
+          ],
+          "x": 1425.0523103041708,
+          "y": 568.5510406358806,
+          "direction": 2
+        },
+        "end": {
+          "tableId": "t_preferences",
+          "columnIds": [
+            "c_preferences_default_platform_id"
+          ],
+          "x": 1479.167840975499,
+          "y": 667.2309288618995,
+          "direction": 1
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "r_song_links_song": {
+        "id": "r_song_links_song",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "t_songs",
+          "columnIds": [
+            "c_songs_id"
+          ],
+          "x": 1218.3711165944333,
+          "y": 1616.5040081567824,
+          "direction": 1
+        },
+        "end": {
+          "tableId": "t_song_links",
+          "columnIds": [
+            "c_song_links_song_id"
+          ],
+          "x": 1167.4506084040672,
+          "y": 1480.4915102964028,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "r_song_links_platform": {
+        "id": "r_song_links_platform",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "t_platforms",
+          "columnIds": [
+            "c_platforms_id"
+          ],
+          "x": 1098.8023103041708,
+          "y": 668.5510406358806,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "t_song_links",
+          "columnIds": [
+            "c_song_links_platform_id"
+          ],
+          "x": 1081.2839417374007,
+          "y": 1356.4915102964028,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "r_conversions_user": {
+        "id": "r_conversions_user",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 1,
+        "start": {
+          "tableId": "t_users",
+          "columnIds": [
+            "c_users_id"
+          ],
+          "x": 1066.0403535405644,
+          "y": 1066.6576614434264,
+          "direction": 1
+        },
+        "end": {
+          "tableId": "t_conversions",
+          "columnIds": [
+            "c_conversions_user_id"
+          ],
+          "x": 1060.2042612053801,
+          "y": 947.4619897939749,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "r_conversions_source_link": {
+        "id": "r_conversions_source_link",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 1,
+        "start": {
+          "tableId": "t_song_links",
+          "columnIds": [
+            "c_song_links_id"
+          ],
+          "x": 736.617275070734,
+          "y": 1356.4915102964028,
+          "direction": 4
+        },
+        "end": {
+          "tableId": "t_conversions",
+          "columnIds": [
+            "c_conversions_source_song_link_id"
+          ],
+          "x": 610.9542612053802,
+          "y": 1015.4619897939749,
+          "direction": 8
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "r_conversions_target_link": {
+        "id": "r_conversions_target_link",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 1,
+        "start": {
+          "tableId": "t_song_links",
+          "columnIds": [
+            "c_song_links_id"
+          ],
+          "x": 908.9506084040673,
+          "y": 1356.4915102964028,
+          "direction": 4
+        },
+        "end": {
+          "tableId": "t_conversions",
+          "columnIds": [
+            "c_conversions_target_song_link_id"
+          ],
+          "x": 910.4542612053802,
+          "y": 1015.4619897939749,
+          "direction": 8
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "r_conversions_requested_platform": {
+        "id": "r_conversions_requested_platform",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 1,
+        "start": {
+          "tableId": "t_platforms",
+          "columnIds": [
+            "c_platforms_id"
+          ],
+          "x": 1316.3023103041708,
+          "y": 668.5510406358806,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "t_conversions",
+          "columnIds": [
+            "c_conversions_requested_target_platform_id"
+          ],
+          "x": 1060.2042612053801,
+          "y": 811.4619897939749,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "r_user_saved_links_user": {
+        "id": "r_user_saved_links_user",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "t_users",
+          "columnIds": [
+            "c_users_id"
+          ],
+          "x": 1318.0403535405644,
+          "y": 1154.6576614434264,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "t_user_saved_links",
+          "columnIds": [
+            "c_user_saved_links_user_id"
+          ],
+          "x": 1228.5849033412844,
+          "y": 1908.1367187035216,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      },
+      "r_user_saved_links_song_link": {
+        "id": "r_user_saved_links_song_link",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "t_song_links",
+          "columnIds": [
+            "c_song_links_id"
+          ],
+          "x": 908.9506084040672,
+          "y": 1604.4915102964028,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "t_user_saved_links",
+          "columnIds": [
+            "c_user_saved_links_song_link_id"
+          ],
+          "x": 984.5849033412844,
+          "y": 1908.1367187035216,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1775251516174,
+          "createAt": 1775251516174
+        }
+      }
+    },
+    "indexEntities": {},
+    "indexColumnEntities": {},
+    "memoEntities": {}
+  }
+}

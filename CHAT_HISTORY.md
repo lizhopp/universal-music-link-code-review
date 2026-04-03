@@ -666,3 +666,13 @@ From now on, entries include detailed assistant outputs (not only summaries).
   Added concept references:
   - Mermaid ER Diagram Syntax: https://mermaid.js.org/syntax/entityRelationshipDiagram.html
   - PostgreSQL DDL constraints: https://www.postgresql.org/docs/current/ddl-constraints.html
+
+### 2026-04-03 16:25:36 CDT
+- User:
+  can you convert the erd file into a .erd so I can use ERD editor extension?
+- Codex:
+  Generated `ERD.erd` (ERD Editor JSON format) from current schema tables and relationships, including layout metadata and FK relationship entities.
+  Verified file is valid JSON.
+  Added concept references:
+  - ERD Editor JSON Schema: https://raw.githubusercontent.com/dineug/erd-editor/main/json-schema/schema.json
+  - ERD Editor project/docs: https://github.com/dineug/erd-editor
