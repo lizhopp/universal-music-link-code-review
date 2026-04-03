@@ -10,16 +10,17 @@ create table
         created_at timestamp not null default now ()
     );
 
-create table songs(
-    id UUID primary key default gen_random_uuid(),
-    title text not null,
-    primary_artist text not null,
-    album_name text,
-    duration_ms INTEGER,
-    isrc text Unique,
-    created_at timestamp not null default now(),
-    updated_at timestamp not null default now()
-);
+create table
+    songs (
+        id UUID primary key default gen_random_uuid (),
+        title text not null,
+        primary_artist text not null,
+        album_name text,
+        duration_ms INTEGER,
+        isrc text Unique,
+        created_at timestamp not null default now (),
+        updated_at timestamp not null default now ()
+    );
 
 create table
     users (
