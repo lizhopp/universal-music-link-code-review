@@ -42,7 +42,8 @@ users to convert music track links between streaming services such as:
 
 -   Spotify
 -   Apple Music
--   YouTube Music
+
+MVP support includes Spotify and Apple Music.
 
 Users can paste a song link and instantly receive a playable version of
 that song in their **preferred streaming service**.
@@ -133,7 +134,6 @@ Users can set a default service such as:
 
 -   Spotify
 -   Apple Music
--   YouTube Music
 
 Conversions will automatically target the selected service.
 
@@ -185,10 +185,11 @@ Responsibilities:
 
 Stores:
 
--   User accounts
--   Preferences
+-   Canonical songs
+-   Platform-specific song links
+-   User accounts and preferences
 -   Conversion history
--   Service data
+-   Saved links
 
 ------------------------------------------------------------------------
 
@@ -197,6 +198,7 @@ Stores:
 ## Frontend
 
 -   React
+-   Vite
 -   React Router
 -   Axios
 -   CSS / UI library
@@ -205,6 +207,8 @@ Stores:
 
 -   Node.js
 -   Express.js
+-   PostgreSQL client (`pg`)
+-   bcrypt
 -   JWT Authentication
 -   REST API architecture
 
@@ -217,7 +221,6 @@ Stores:
 
 -   Spotify Web API
 -   Apple Music API
--   YouTube Music search APIs
 
 ## Tools
 
@@ -231,49 +234,112 @@ Stores:
 
 # Database Design
 
+The schema lives in `server/db/schema.sql`.
+
+## platforms
+
+  column      type
+  ----------- -----------
+  id          serial
+  name        varchar(100) unique
+  slug        varchar(50) unique
+  base_url    text
+  is_active   boolean
+  created_at  timestamp
+
+## songs
+
+  column          type
+  --------------- -----------
+  id              UUID
+  title           text
+  primary_artist  text
+  album_name      text
+  duration_ms     integer
+  isrc            text unique
+  created_at      timestamp
+  updated_at      timestamp
+
 ## users
 
   column          type
   --------------- -----------
   id              UUID
-  email           text
+  email           text unique
   password_hash   text
   created_at      timestamp
+  updated_at      timestamp
 
 ## preferences
 
+  column               type
+  -------------------- -----------
+  id                   UUID
+  user_id              UUID unique
+  default_platform_id  integer
+  created_at           timestamp
+  updated_at           timestamp
+
+## song_links
+
   column            type
   ----------------- -----------
-  user_id           UUID
-  default_service   text
+  id                UUID
+  song_id           UUID
+  platform_id       integer
+  platform_track_id text
+  url               text unique
+  is_verified       boolean
+  created_at        timestamp
   updated_at        timestamp
+
+Unique pair: `(song_id, platform_id)` to prevent duplicate link rows per song+platform.
 
 ## conversions
 
-  column             type
-  ------------------ -----------
-  id                 UUID
-  user_id            UUID
-  source_url         text
-  source_service     text
-  target_service     text
-  result_url         text
-  confidence_score   float
-  created_at         timestamp
+  column                        type
+  ----------------------------- -----------
+  id                            UUID
+  user_id                       UUID nullable
+  source_song_link_id           UUID nullable
+  target_song_link_id           UUID nullable
+  source_url                    text
+  requested_target_platform_id  integer nullable
+  status                        text
+  confidence_score              numeric(4,3)
+  created_at                    timestamp
 
-## services (seeded)
+## user_saved_links
 
-  column     type
-  ---------- ---------
-  id         integer
-  name       text
-  base_url   text
+  column        type
+  ------------- -----------
+  id            UUID
+  user_id       UUID
+  song_link_id  UUID
+  created_at    timestamp
 
-Example services:
+Unique pair: `(user_id, song_link_id)` to prevent duplicate saves.
 
--   Spotify
--   Apple Music
--   YouTube Music
+## Relationship Map
+
+-   `preferences.user_id -> users.id` (one preference row per user)
+-   `preferences.default_platform_id -> platforms.id`
+-   `song_links.song_id -> songs.id`
+-   `song_links.platform_id -> platforms.id`
+-   `conversions.user_id -> users.id` (nullable)
+-   `conversions.source_song_link_id -> song_links.id` (nullable)
+-   `conversions.target_song_link_id -> song_links.id` (nullable)
+-   `conversions.requested_target_platform_id -> platforms.id` (nullable)
+-   `user_saved_links.user_id -> users.id`
+-   `user_saved_links.song_link_id -> song_links.id`
+
+## Schema Change Byproducts
+
+-   `services` became `platforms` with explicit `slug` and `is_active`.
+-   Preferences now store `default_platform_id` instead of a service name string.
+-   Conversion linkage is now FK-based (`source_song_link_id`, `target_song_link_id`) instead of only raw source/target service fields.
+-   Canonical `songs` + `song_links` enables cross-platform mapping around one song identity.
+-   `user_saved_links` now models saved links as a proper join table.
 
 ------------------------------------------------------------------------
 
@@ -301,13 +367,13 @@ Returns a JWT token used for authenticated requests.
 
 GET /preferences
 
-Returns the user's preferred music service.
+Returns the user's preferred platform setting.
 
 ### Update Preferences
 
 PUT /preferences
 
-Updates the default streaming service.
+Updates the user's default platform (mapped to `preferences.default_platform_id`).
 
 ------------------------------------------------------------------------
 
@@ -319,7 +385,7 @@ POST /convert
 
 Request Example:
 
-{ "sourceUrl": "spotify track url", "targetService": "apple_music" }
+{ "sourceUrl": "spotify track url", "requestedTargetPlatformId": 2 }
 
 Response Example:
 
@@ -357,6 +423,8 @@ To find equivalent songs across platforms the system:
 
 # Installation
 
+Node requirement (from `engines`): `>=22 <25`.
+
 ## Clone Repository
 
 git clone https://github.com/yourusername/universal-music-link.git
@@ -370,10 +438,15 @@ npm install
 
 Create `.env`:
 
-DATABASE_URL=\
+DATABASE_URL=postgresql://<user>@localhost:5432/universal_music_link\
 JWT_SECRET=\
 SPOTIFY_CLIENT_ID=\
 SPOTIFY_CLIENT_SECRET=
+
+Apply schema:
+
+createdb universal_music_link\
+psql -d universal_music_link -f db/schema.sql
 
 Run server:
 
@@ -383,9 +456,9 @@ npm run dev
 
 ## Frontend Setup
 
-cd client\
+cd client/Universal-Music-Link\
 npm install\
-npm start
+npm run dev
 
 ------------------------------------------------------------------------
 
@@ -403,32 +476,20 @@ Database: - Hosted PostgreSQL
 
 # Future Improvements
 
-## Additional Streaming Services
+## Future Implementations (Post-MVP)
 
-Support for:
+Additional streaming service support:
 
+-   YouTube Music
 -   Amazon Music
 -   Deezer
 -   Tidal
 
-## Playlist Conversion
+## Stretch Goals
 
-Convert entire playlists between platforms.
-
-## Mobile Integration
-
-Mobile app with:
-
--   Share sheet integration
--   Deep link handling
-
-## Improved Matching
-
-Enhancements such as:
-
--   ISRC-based matching
--   Machine learning ranking
--   User feedback corrections
+-   Playlist conversion between platforms
+-   Mobile integration (share sheet + deep link handling)
+-   Improved matching (ISRC-first matching, ML ranking, user feedback corrections)
 
 ------------------------------------------------------------------------
 

@@ -13,6 +13,12 @@
   "license": "ISC",
   "author": "Jorge Miranda",
   "type": "module",
+  "imports": {
+    "#*": "./*.js"
+  },
+  "engines": {
+    "node": ">=22 <25"
+  },
   "scripts": {
     "dev": "nodemon --env-file=.env server.js",
     "test": "echo \"Error: no test specified\" && exit 1"

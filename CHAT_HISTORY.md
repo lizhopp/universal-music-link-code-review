@@ -272,3 +272,182 @@ From now on, entries include detailed assistant outputs (not only summaries).
   you aren't updating the chat history file like we agreed...
 - Codex:
   Acknowledged the miss and appended the missing conversation entries to `CHAT_HISTORY.md`.
+
+### 2026-04-02 23:12:04 CDT
+- User:
+  I think I'm almost done with #28. Can you verify and help me with whats missing?
+- Codex:
+  Verified `#28` against current schema and issue checklist.
+
+  Findings:
+  - `users` table was mostly complete.
+  - One schema mismatch remained vs canonical issue spec: `email` was `VARCHAR(255)` instead of `TEXT`.
+  - Auth endpoint compatibility checkbox in `#28` remains incomplete because `server/api/auth.js` register/login handlers are still stubs.
+
+  Applied fix:
+  - Updated `server/db/schema.sql`:
+    - `users.email` from `VARCHAR(255)` -> `TEXT` to match `#28` canonical schema exactly.
+
+### 2026-04-03 13:19:02 CDT
+- User:
+  should my root have an engine linke node?
+- Codex:
+  Clarified that Node runtime should be declared with `engines.node`, not as a dependency package.
+  Recommended setting the Node version at project root, and also in `server/package.json` if server is run/deployed independently.
+
+### 2026-04-03 13:19:02 CDT (same session, shortly after)
+- User:
+  explain further
+- Codex:
+  Explained `dependencies` vs `engines` behavior in npm and why `"node"` under `dependencies` is usually incorrect for app repos.
+  Provided cleanup steps: remove Node dependency, add `engines`, refresh lockfile.
+
+### 2026-04-03 13:19:02 CDT (same session, shortly after)
+- User:
+  ok
+- Codex:
+  Applied versioning cleanup:
+  - Added root `package.json` with:
+    - `"private": true`
+    - `"engines": { "node": ">=22 <25" }`
+  - Added same `engines.node` range to `server/package.json`.
+  - Ran root `npm install` to sync `package-lock.json`.
+
+### 2026-04-03 13:19:02 CDT (same session, shortly after)
+- User:
+  what does line 2 do?
+- Codex:
+  Explained line 2 (`"private": true`) prevents accidental `npm publish` from the repository root and does not affect runtime behavior.
+
+### 2026-04-03 13:21:13 CDT
+- User:
+  what does line 16 do?
+- Codex:
+  Clarified that line 16 in `server/package.json` is the `imports` field, which defines internal package import aliases.
+  In this file, `"#*": "./*.js"` maps `#...` specifiers to local `.js` paths inside the server package.
+
+### 2026-04-03 13:22:09 CDT
+- User:
+  explain more with examples
+- Codex:
+  Expanded explanation of `imports` with concrete examples showing how `#...` aliases resolve to local server files and how this can replace deep relative import paths.
+
+### 2026-04-03 13:23:52 CDT
+- User:
+  so is line 2 correct?
+- Codex:
+  Verified line 2 in `server/db/queries/users.js` and identified that `import db from '#client'` does not match the actual DB client location (`server/db/client.js`) under the current alias mapping.
+  Recommended changing it to `import db from '#db/client';` (with semicolon) so Node resolves to `./db/client.js`.
+
+### 2026-04-03 13:25:43 CDT
+- User:
+  why isnt intellisense auto completing?
+- Codex:
+  Diagnosed likely cause: no `jsconfig.json`/`tsconfig.json` in `server`, so VS Code did not have explicit module resolution settings for `#...` aliases from `package.json` imports.
+  Added `server/jsconfig.json` with `module/moduleResolution: NodeNext` and matching `paths` (`"#*": ["./*.js"]`) to improve import resolution and autocomplete behavior.
+
+### 2026-04-03 13:37:17 CDT
+- User:
+  how can I acces my database in the terminal again?
+- Codex:
+  Verified project uses `DATABASE_URL` (`server/db/client.js`) and confirmed `psql` is installed locally.
+  Provided terminal steps to load `.env` and connect with `psql "$DATABASE_URL"`, plus common psql commands (`\\dt`, `\\d <table>`, `SELECT ...`, `\\q`).
+
+### 2026-04-03 13:38:35 CDT
+- User:
+  i remember there being a much simpler way
+- Codex:
+  Confirmed the simpler local command works directly with the database name:
+  - `psql -d universal_music_link`
+  Verified successful connection using `\\conninfo`.
+
+### 2026-04-03 13:41:24 CDT
+- User:
+  why doesnt my database have the tables I created?
+- Codex:
+  Diagnosed by checking live DB and running schema with `ON_ERROR_STOP`.
+  Findings:
+  - Database currently has no tables (`\\dt` returned none).
+  - `server/db/schema.sql` fails at `song_links` creation because it references a missing `songs` table (`ERROR: relation "songs" does not exist`).
+  - Additional schema typo likely to fail next: `conversions.source_song_link_id` references `song_link(id)` (singular) while table name used elsewhere is `song_links`.
+
+### 2026-04-03 13:56:40 CDT
+- User:
+  there is an error on line 5
+- Codex:
+  Checked `server/jsconfig.json` and applied a compatibility fix by removing `compilerOptions.baseUrl` (previously on line 5), leaving `paths` alias mapping in place.
+  Verified resulting JSON is valid.
+
+### 2026-04-03 14:02:13 CDT
+- User:
+  is there something like json crack for SQL? specifically looking for something that can map references
+- Codex:
+  Researched current SQL diagram tools that auto-map foreign key references.
+  Recommended practical options by workflow:
+  - `dbdiagram.io` / DBML stack for quick text-to-ERD workflow and SQL/DBML conversion.
+  - `pgAdmin` ERD tool to generate diagrams from an existing PostgreSQL DB with FK links.
+  - `DBeaver` diagrams for table/schema-level visualization and relationship exploration.
+  - `tbls` for CLI/CI-generated schema docs and Mermaid outputs.
+
+### 2026-04-03 14:28:20 CDT
+- User:
+  can you confirm issue #33 is complete?
+- Codex:
+  Verified issue `#33` against the repository and local DB state.
+  Conclusion: not complete.
+  Evidence:
+  - Issue remains open on GitHub.
+  - `songs` table is not present in live DB (`\\d songs` fails).
+  - `server/db/schema.sql` currently fails to execute due SQL syntax error near `create table users`, caused by missing semicolon after `songs` table definition.
+
+### 2026-04-03 14:37:08 CDT
+- User:
+  ok so #33 should be completed now
+- Codex:
+  Re-verified after user edits.
+  Findings:
+  - `schema.sql` now includes the missing semicolon and runs successfully in a fresh temporary database.
+  - `songs` definition matches issue schema requirements and `song_links.song_id` correctly references `songs(id)`.
+  - Live local DB `universal_music_link` still does not currently contain `songs` (migration/schema not yet applied there).
+  - Issue checklist item for metadata normalization documentation remains not clearly documented in repository text.
+
+### 2026-04-03 14:42:47 CDT
+- User:
+  update the readme to match all the changes we have made or plan to make
+- Codex:
+  Rewrote `README.md` to align with actual repository state and roadmap.
+  Included:
+  - Current implementation status vs in-progress work.
+  - Updated local setup instructions (`Node engines`, `.env`, schema apply, `psql` usage).
+  - Current database model and FK relationship summary.
+  - API status clarified as scaffold/in-progress.
+  - Planned roadmap sections mapped to active GitHub issue groups.
+
+### 2026-04-03 14:44:29 CDT
+- User:
+  I dont like the changes
+- Codex:
+  Acknowledged feedback and offered to revise README direction with options (full rollback, hybrid update, or stylistic rewrite).
+
+### 2026-04-03 14:47:27 CDT
+- User:
+  2. I like the old format but I want the readme to reflect the what the schema looks like and anything that is a by product of those changes.
+- Codex:
+  Restored the original README style/structure and applied focused updates only.
+  Updated sections:
+  - Database Design rewritten to match `server/db/schema.sql` (`platforms`, `songs`, `users`, `preferences`, `song_links`, `conversions`, `user_saved_links`).
+  - Added relationship map and schema change byproducts.
+  - Added API status note (scaffold/in-progress) and preferences/conversion wording aligned to schema fields.
+  - Updated installation details: Node engines note, schema apply commands, correct frontend path/command (`client/Universal-Music-Link`, `npm run dev`).
+
+### 2026-04-03 14:57:09 CDT
+- User:
+  I don't want anything to say 'planned'. This readme should reflect everything that the project will do once completed. The only thing I want to be tagged is future implementations like adding youtube music, amazon music, etc(the mvp will only work with spotify and apple music) and any stretch goals
+- Codex:
+  Updated README to match requested product-vision tone:
+  - Removed all `planned` / in-progress scaffolding language.
+  - Set MVP scope explicitly to Spotify + Apple Music.
+  - Removed YouTube from current support/API lists.
+  - Reworked Future section into:
+    - `Future Implementations (Post-MVP)` for additional streaming services (YouTube Music, Amazon Music, Deezer, Tidal).
+    - `Stretch Goals` for playlist conversion, mobile integration, and improved matching.
