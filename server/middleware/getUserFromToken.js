@@ -1,4 +1,4 @@
-//import userById query 
+import { getUserById } from "#db/queries/users";
 import { verifyToken } from "../utils/jwt.js";
 
 
@@ -11,7 +11,7 @@ export default async function getUserFromToken(req, res, next) {
     const token = auth.split('')[1];
     try {
         const { id } = verifyToken(token);
-        const user = await //getuserbyid query
+        const user = await getUserById(id);
         req.user = user;
         next();
 
