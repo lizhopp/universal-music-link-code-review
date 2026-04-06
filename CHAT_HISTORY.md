@@ -850,3 +850,82 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - provide a concise remaining-work checklist when helpful
 
   Also added an issue review standard so completion checks are based on actual implementation and requirements, not just whether some code exists.
+
+### 2026-04-06 11:41:38 CDT
+- User:
+  ok. can you get access to my project board so you can complete the command I gave before you wrote all that code just now?
+- Codex:
+  Began GitHub/project-board access troubleshooting on this machine.
+
+  Findings and fixes:
+  - `gh` was not initially logged in on this machine.
+  - During `gh auth login`, GitHub CLI failed with:
+
+    ```text
+    mkdir /Users/darthlyrical/.config/gh: permission denied
+    ```
+
+  - Checked local permissions and found:
+    - `/Users/darthlyrical/.config` was owned by `root:staff`
+    - `/Users/darthlyrical/.config/gh` did not exist yet
+  - Recommended fix:
+
+    ```bash
+    sudo chown -R darthlyrical:staff /Users/darthlyrical/.config
+    gh auth login
+    ```
+
+  - After login, GitHub issue access worked but project-board access still failed because the token was missing project scopes.
+  - Recommended scope refresh:
+
+    ```bash
+    gh auth refresh -s read:project -s project
+    ```
+
+  Final access result after refresh:
+  - `gh auth status` succeeded.
+  - Project list succeeded:
+    - Project `1`: `Fullstack Academy Capstone`
+  - Project item list succeeded.
+
+### 2026-04-06 11:41:38 CDT
+- User:
+  alright. lets get started
+- Codex:
+  Completed the originally requested review-only pass: compared current codebase state against GitHub issues/project board without making code changes.
+
+  Current codebase assessment:
+  - Frontend is still largely the default Vite starter in `client/src/App.jsx`.
+  - Backend route structure exists, but only `/users` is currently mounted in `server/app.js`.
+  - `server/api/convert.js`, `server/api/conversions.js`, and `server/api/preferences.js` are still stubs/mostly unimplemented.
+  - Schema work in `server/db/schema.sql` is much further along than the app/API layers.
+  - `server/db/seed.js` currently seeds Spotify and Apple Music only.
+
+  Board/issue assessment:
+  - `#5 Setup base routing structure` is correctly `In Progress`.
+  - `#11 Create /convert endpoint (initial stub)` is correctly `Ready`.
+  - `#28 Create users table` is correctly `In Progress`.
+  - `#29 Create preferences table` is correctly `In Progress`.
+  - `#30 Create conversions table` is correctly `In Progress`.
+  - `#32 Create platforms table and seed supported platforms` is correctly `In Progress`.
+  - `#33 Create songs table (canonical track metadata)` being `Done` appears correct.
+  - No board move was made during this pass.
+
+  Recommended next feasible issue:
+  - `#5 Setup base routing structure`
+
+  Reasoning:
+  - It has the fewest blockers.
+  - It is more foundational than jumping straight into `#11`.
+  - Completing it will unlock several later backend issues.
+  - The route files already exist, so the work is clearly scoped.
+
+  Suggested completion path for `#5`:
+  1. Mount the existing routers in `server/app.js` for `/convert`, `/conversions`, and `/preferences`.
+  2. Decide whether `/users` should stay as-is or be renamed to `/auth`.
+  3. Add a simple health/root route such as `GET /` or `GET /health`.
+  4. Add a consistent JSON 404 handler for unknown routes.
+  5. Manually verify each mounted route responds, even if some handlers are still placeholders.
+
+  Recommended issue after `#5`:
+  - `#11 Create /convert endpoint (initial stub)`
