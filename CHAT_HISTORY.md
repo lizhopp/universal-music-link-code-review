@@ -817,3 +817,36 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - safe git workflow for multi-computer usage
   - documentation upkeep expectations
   - inspect-before-edit and avoid-overwriting-user-work conventions
+
+### 2026-04-06 11:13:17 CDT
+- User:
+  after the mvp is functioning, I want to make the convesion work as an apple share extension
+- Codex:
+  Logged this as a post-MVP product direction.
+
+  Recommended implementation direction:
+  - Keep the current web app/API as the source of truth for link conversion.
+  - Add the Apple share extension after MVP instead of mixing extension-specific work into the first release.
+  - Treat the extension as a thin client that:
+    - receives a shared music URL from iOS
+    - sends it to the existing backend conversion flow
+    - returns or opens the converted destination link
+
+  Noted that this is a good phase-2 target because it depends on the core conversion flow being reliable first.
+
+### 2026-04-06 11:16:26 CDT
+- User:
+  need the agents.md to be updated. I want you to be able to review my issues on a project board, move them as necessary, check where I am in my project and provided next steps so I can complete the next feasable issue
+- Codex:
+  Updated `AGENTS.md` to make project-board review part of the normal workflow.
+
+  Added guidance that future Codex sessions should:
+  - inspect local code and compare it against issue requirements
+  - review GitHub issues/project board state when access is available
+  - identify completed, partial, blocked, or misclassified issues
+  - move or recommend moving board items when status clearly does not match reality
+  - suggest the next most feasible issue based on dependencies and current code state
+  - explain why the recommended issue is the best next step
+  - provide a concise remaining-work checklist when helpful
+
+  Also added an issue review standard so completion checks are based on actual implementation and requirements, not just whether some code exists.
