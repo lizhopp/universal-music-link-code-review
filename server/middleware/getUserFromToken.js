@@ -8,7 +8,7 @@ export default async function getUserFromToken(req, res, next) {
     if(!auth || !auth.startsWith('Bearer')) return next();
 
 
-    const token = auth.split('')[1];
+    const token = auth.split(' ')[1];
     try {
         const { id } = verifyToken(token);
         const user = await getUserById(id);
