@@ -218,6 +218,96 @@ From now on, entries include detailed assistant outputs (not only summaries).
 - User:
   ok
 - Codex:
+  Confirmed and continued.
+
+### 2026-04-06 10:05:48 CDT
+- User:
+  Im working on this repo on multiple computers. How do I get pull the most recent updated information?
+- Codex:
+  Checked the local repository setup before giving pull instructions.
+  Findings:
+  - The top-level `Capstone` folder is not the git repo.
+  - The actual repo is:
+    - `universal-music-link`
+  - Current tracked branch:
+    - `main` tracking `origin/main`
+  - Remote:
+    - `https://github.com/Darthlyrical/universal-music-link.git`
+  - Local status included an untracked `client/` folder.
+
+  Recommended commands:
+
+  ```bash
+  cd "/Users/darthlyrical/Desktop/Macbook Pro/coursework/Capstone/universal-music-link"
+  git pull origin main
+  ```
+
+  Also provided a safer fetch-first routine:
+
+  ```bash
+  cd "/Users/darthlyrical/Desktop/Macbook Pro/coursework/Capstone/universal-music-link"
+  git status
+  git fetch origin
+  git pull origin main
+  ```
+
+  Explained that the untracked `client/` folder might block the pull if the remote contains overlapping files at that path.
+
+### 2026-04-06 10:06 CDT (approx)
+- User:
+  alright so the branch I'm working on now should be the most updated one?
+- Codex:
+  Clarified that tracking `origin/main` does not guarantee the local branch is current unless a pull was done recently.
+
+  Recommended:
+
+  ```bash
+  cd "/Users/darthlyrical/Desktop/Macbook Pro/coursework/Capstone/universal-music-link"
+  git pull origin main
+  ```
+
+  Explained that if Git reports `Already up to date`, then the local branch matches the current remote branch.
+  Reiterated that the untracked `client/` folder could still cause a protective merge/pull stop if paths overlap.
+
+### 2026-04-06 10:07 CDT (approx)
+- User:
+  I wouldnt mind an override
+- Codex:
+  Explained three levels of overwrite/update behavior.
+
+  1. Reset tracked files to match GitHub:
+
+  ```bash
+  cd "/Users/darthlyrical/Desktop/Macbook Pro/coursework/Capstone/universal-music-link"
+  git fetch origin
+  git reset --hard origin/main
+  ```
+
+  2. Fully wipe local differences including untracked files/folders:
+
+  ```bash
+  cd "/Users/darthlyrical/Desktop/Macbook Pro/coursework/Capstone/universal-music-link"
+  git fetch origin
+  git reset --hard origin/main
+  git clean -fd
+  ```
+
+  3. Safer backup-first option before pulling:
+
+  ```bash
+  cd "/Users/darthlyrical/Desktop/Macbook Pro/coursework/Capstone/universal-music-link"
+  git status
+  git stash -u
+  git pull origin main
+  ```
+
+  Highlighted that `git clean -fd` would permanently delete untracked files and likely includes the local `client/` folder.
+
+### 2026-04-06 10:08 CDT (approx)
+- User:
+  make sure you log our chat history in the md file
+- Codex:
+  Appended this conversation to `CHAT_HISTORY.md` so the file stays current with the git guidance discussed in this session.
   Interpreted this as approval to execute the next suggested step (split `#31` into actionable sub-issues).
 
   Completed follow-up board operations:
@@ -676,3 +766,54 @@ From now on, entries include detailed assistant outputs (not only summaries).
   Added concept references:
   - ERD Editor JSON Schema: https://raw.githubusercontent.com/dineug/erd-editor/main/json-schema/schema.json
   - ERD Editor project/docs: https://github.com/dineug/erd-editor
+
+### 2026-04-06 10:10:44 CDT
+- User:
+  review that md file so you can be standardized across my other machines
+- Codex:
+  Reviewed `CHAT_HISTORY.md` to align future logging behavior across machines.
+
+  Standardized conventions inferred from the file:
+  - Keep a single running log in transcript style rather than brief summaries only.
+  - Use `### <timestamp>` headers for timestamped entries.
+  - Use `### Earlier in session ...` only for backfilled history when timestamps are unavailable.
+  - Format each exchange as:
+    - `- User:`
+    - `- Codex:`
+  - Include exact commands, concrete findings, file names, issue numbers, and outcomes when they matter.
+  - Preserve enough detail to reconstruct what changed or was decided later on another machine.
+  - Keep wording concise and structured instead of dumping every intermediate thought.
+
+  Confirmed this is the format to continue using when appending future session history.
+
+### 2026-04-06 10:16:44 CDT
+- User:
+  is there a better way to standardize? like with an egent.md file?
+- Codex:
+  Reviewed the repo for an existing instruction file and found no `AGENTS.md`.
+  Recommended using a dedicated repo-level `AGENTS.md` for stable, machine-independent guidance, with:
+  - `README.md` for project/setup docs
+  - `CHAT_HISTORY.md` for running session history
+  - `AGENTS.md` for persistent agent instructions
+
+  Suggested `AGENTS.md` include:
+  - repo root and structure
+  - git workflow expectations
+  - chat logging format
+  - coding/working conventions
+  - known repo quirks
+
+### 2026-04-06 10:16:44 CDT
+- User:
+  ok lets do that.
+- Codex:
+  Created `AGENTS.md` at repo root to standardize future Codex behavior across machines.
+
+  Added guidance for:
+  - repo root usage (`universal-music-link/`)
+  - project structure (`client/`, `server/`, root docs)
+  - known duplicate frontend/scaffold quirk under `client/universal-music-link/`
+  - `CHAT_HISTORY.md` transcript format and logging expectations
+  - safe git workflow for multi-computer usage
+  - documentation upkeep expectations
+  - inspect-before-edit and avoid-overwriting-user-work conventions
