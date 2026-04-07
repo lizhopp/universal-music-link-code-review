@@ -5,6 +5,12 @@ import usersRouter from '#api/users';
 const app = express();
 export default app;
 
+import cors from 'cors';
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN, 
+}));
+
 
 
 app.use(express.json());

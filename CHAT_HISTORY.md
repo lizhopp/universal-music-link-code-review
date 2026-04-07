@@ -1414,3 +1414,43 @@ From now on, entries include detailed assistant outputs (not only summaries).
   Concept references:
   - Render first deploy fields (Root Directory, Build, Publish, env vars): https://render.com/docs/your-first-deploy
   - Vite static deploy to Render: https://vite.dev/guide/static-deploy.html
+
+### 2026-04-06 21:10:18 CDT
+- User:
+  forgot to push my frontend before deploying
+- Codex:
+  Checked git sync state and found local branch is already aligned with remote:
+  - `main...origin/main` (no ahead/behind)
+  - working tree clean
+
+  Guidance provided:
+  - if no new local commits exist, nothing to push
+  - trigger a manual redeploy in Render static-site dashboard to rebuild from latest commit
+  - ensure required frontend env vars (for example `VITE_API_URL`) are set before redeploy
+
+  Concept references:
+  - Git status short branch format: https://git-scm.com/docs/git-status
+  - Render manual deploy/redeploy: https://render.com/docs/deploys
+
+### 2026-04-06 21:11:32 CDT
+- User:
+  its rendering the updated front end but it's failing to fetch
+- Codex:
+  Reviewed current frontend config and identified production mismatch:
+  - `client/src/App.jsx` uses `API_BASE = (import.meta.env.VITE_API_URL ?? '/api')...`
+  - `client/.env.local` sets `VITE_API_URL=/api` (local dev only)
+  - Vite `/api` proxy works only in local dev server, not in deployed static site runtime
+
+  Diagnosis provided:
+  - deployed static frontend must call backend with absolute URL via Render env var `VITE_API_URL`
+  - if frontend/backend are on different origins, backend must allow CORS for frontend origin
+
+  Suggested fix path:
+  1. set frontend Render env var `VITE_API_URL=https://<backend-service>.onrender.com`
+  2. redeploy frontend static site
+  3. if still blocked, add backend CORS allowlist for frontend origin
+
+  Concept references:
+  - Vite env vars and modes: https://vite.dev/guide/env-and-mode.html
+  - Vite dev server proxy: https://vite.dev/config/server-options.html#server-proxy
+  - MDN CORS: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
