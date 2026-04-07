@@ -12,7 +12,9 @@ function App() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/health`);
+      const res = await fetch(`${API_BASE}/health?t=${Date.now()}`, {
+        cache: 'no-store',
+      });
       const text = await res.text();
 
       if (!res.ok) throw new Error(text || 'Health check failed');

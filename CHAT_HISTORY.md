@@ -1486,3 +1486,37 @@ From now on, entries include detailed assistant outputs (not only summaries).
   Concept references:
   - React event handling: https://react.dev/learn/responding-to-events
   - React state updates: https://react.dev/learn/state-a-components-memory
+
+### 2026-04-06 21:35:20 CDT
+- User:
+  why are network status showing 304 instead of 200
+- Codex:
+  Explained that `304 Not Modified` is normal cache revalidation behavior:
+  - browser sends conditional headers (`If-None-Match` / `If-Modified-Since`)
+  - server confirms resource unchanged, so browser uses cached response
+
+  Clarified this commonly happens for health/static requests due ETag behavior and is not an error by itself.
+
+  Suggested ways to force fresh `200` responses for health polling:
+  - client fetch option `cache: 'no-store'`
+  - append cache-busting query param (for example `?t=${Date.now()}`)
+  - adjust server cache headers / ETag behavior if needed
+
+  Concept references:
+  - MDN 304 Not Modified: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/304
+  - MDN ETag header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
+  - Fetch cache modes: https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
+
+### 2026-04-06 21:36:51 CDT
+- User:
+  ok can you add those for me?
+- Codex:
+  Applied frontend change in `client/src/App.jsx` to reduce cached health responses:
+  - added cache-busting timestamp query param to health URL (`?t=${Date.now()}`)
+  - added fetch option `cache: 'no-store'`
+
+  Verified frontend build succeeds after change with `npm run build` in `client/`.
+
+  Concept references:
+  - Fetch cache modes: https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
+  - URL search params basics: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
