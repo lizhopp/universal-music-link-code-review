@@ -1454,3 +1454,35 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - Vite env vars and modes: https://vite.dev/guide/env-and-mode.html
   - Vite dev server proxy: https://vite.dev/config/server-options.html#server-proxy
   - MDN CORS: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+
+### 2026-04-06 21:18:58 CDT
+- User:
+  Shared Render deploy failure screenshot after commit `6bf52e0` ("added CORS import to backend"), showing exited with status 1.
+- Codex:
+  Inspected backend files and identified likely root cause:
+  - `server/app.js` imports `cors`
+  - `server/package.json` does not include `cors` dependency
+  - `server/package-lock.json` also has no `cors` entry
+
+  Guidance provided:
+  - install and commit dependency in `server/`: `npm i cors`
+  - commit updated `server/package.json` and `server/package-lock.json`
+  - push and redeploy backend
+
+  Concept references:
+  - npm install/save behavior: https://docs.npmjs.com/cli/v11/commands/npm-install
+  - Express CORS middleware docs: https://expressjs.com/en/resources/middleware/cors.html
+
+### 2026-04-06 21:32:45 CDT
+- User:
+  add a button to the front end that refreshes the health check on the frontend
+- Codex:
+  Implemented frontend change in `client/src/App.jsx`:
+  - extracted health check fetch into reusable `checkHealth` function
+  - added `loading` state
+  - added `Refresh Health Check` button that calls `checkHealth` on click
+  - disabled button while request is in flight and shows `Refreshing...`
+
+  Concept references:
+  - React event handling: https://react.dev/learn/responding-to-events
+  - React state updates: https://react.dev/learn/state-a-components-memory
