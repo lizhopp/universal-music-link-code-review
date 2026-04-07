@@ -22,6 +22,8 @@
 
 ## Chat History Standard
 - Keep `CHAT_HISTORY.md` updated after meaningful requests, decisions, or completed work.
+- Log teaching moments and concept explanations (even short Q&A clarifications) in `CHAT_HISTORY.md`.
+- When a concept is taught, include at least one reference link in the chat-history entry when practical.
 - Use transcript-style entries instead of one-line summaries.
 - Format entries as:
 

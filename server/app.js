@@ -11,6 +11,11 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(morgan('dev'));
 
+
+app.get('/health', (_req, res)=> {
+    res.status(200).send('ok 👍🏽');
+});
+
 app.use(getUserFromToken);
 
 app.use('/users', usersRouter);
