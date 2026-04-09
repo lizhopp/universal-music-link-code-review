@@ -349,13 +349,13 @@ Unique pair: `(user_id, song_link_id)` to prevent duplicate saves.
 
 ### Register
 
-POST /auth/register
+POST /users/register
 
 Creates a new user account.
 
 ### Login
 
-POST /auth/login
+POST /users/login
 
 Returns a JWT token used for authenticated requests.
 

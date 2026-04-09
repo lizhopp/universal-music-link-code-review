@@ -1520,3 +1520,350 @@ From now on, entries include detailed assistant outputs (not only summaries).
   Concept references:
   - Fetch cache modes: https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
   - URL search params basics: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+
+### 2026-04-08 18:58:48 CDT
+- User:
+  Lets just use users for the route name. Update the doc to reflect that
+- Codex:
+  Checked the repository for stale `/auth` route references before editing docs.
+  Findings:
+  - only `README.md` still documented auth endpoints as `/auth/register` and `/auth/login`
+  - current backend mount already uses `/users`, consistent with `server/app.js` and `server/api/users.js`
+
+  Updated `README.md` to align the documented authentication endpoints with the implemented route names:
+  - `POST /users/register`
+  - `POST /users/login`
+
+  No application code was changed in this step; this was a documentation alignment update only.
+
+### 2026-04-08 19:10:06 CDT
+- User:
+  make a little todo list md with todays date with all those steps. Add more detail and insight
+- Codex:
+  Reviewed the repo root markdown files first to avoid creating an inconsistent note pattern.
+  Found only the main project docs (`README.md`, `ERD.md`, `CHAT_HISTORY.md`, `AGENTS.md`, and `client/README.md`), so created a new dated planning note at the repo root:
+  - `2026-04-08-issue-5-todo.md`
+
+  The note is focused on issue `#5` and includes:
+  - the goal of the issue
+  - why route wiring matters before deeper feature work
+  - the target backend route map
+  - step-by-step implementation guidance for `app.js`, `users`, `preferences`, `conversions`, and `convert`
+  - testing guidance and pitfalls
+  - a definition of done
+  - a recommended next issue after `#5`
+
+  No runtime code was changed in this step; this was a planning/documentation artifact to support implementation.
+
+### 2026-04-08 19:11:44 CDT
+- User:
+  okay do that
+- Codex:
+  Re-opened the new issue `#5` planning note and converted it into a more hands-on implementation guide rather than replacing the original context.
+
+  Updated `2026-04-08-issue-5-todo.md` by adding:
+  - a checkbox-based "Hands-On Checklist"
+  - phased work order from inspection through testing
+  - concrete checkpoints after each phase
+  - example JSON stub response shapes
+  - a short "Quick Work Session Order" section for following the task in sequence
+  - practical troubleshooting notes for route mounting, duplicated prefixes, middleware order, and 404 behavior
+
+  No backend runtime files were changed in this step; the update was limited to planning/documentation so the user could implement issue `#5` step by step.
+
+### 2026-04-08 20:03:37 CDT
+- User:
+  I hear a lot about using agents in sentry mode. What is that?
+- Codex:
+  Explained that "sentry mode" is usually a general agent pattern rather than one universal product feature.
+
+  Clarified the practical meaning:
+  - the agent acts more like a watcher or guardrail than an active builder
+  - it monitors for drift, risks, regressions, or mismatches
+  - it is useful for review, verification, and issue-status checking
+
+  Applied the explanation to this repo with concrete examples:
+  - checking whether route files are mounted in `server/app.js`
+  - comparing `README.md` route names against implemented endpoints
+  - checking whether schema/docs/issue status actually match the codebase
+  - warning about frontend proxy behavior making local backend changes appear to work
+
+### 2026-04-08 20:03:37 CDT
+- User:
+  ok lets try that
+- Codex:
+  Reviewed existing repo markdown files first so the new sentry guidance would fit the current doc layout.
+  Found no existing sentry-specific checklist, so created a reusable root-level reference:
+  - `AGENT_SENTRY_CHECKLIST.md`
+
+  The new checklist includes:
+  - a plain-language definition of sentry-style agent work
+  - repo-specific review checks for routing, auth flow, schema alignment, docs, board status, and scope control
+  - examples of what sentry mode should catch in this project
+  - a short output template for how a sentry-style agent should report findings
+
+  No runtime code was changed in this step; the work was documentation and workflow guidance only.
+
+### 2026-04-08 20:07:19 CDT
+- User:
+  use sentry mode on issue #5
+- Codex:
+  Performed a sentry-style review of issue `#5` against the current codebase and the live GitHub issue body.
+
+  What was checked:
+  - `server/app.js`
+  - `server/api/users.js`
+  - `server/api/preferences.js`
+  - `server/api/conversions.js`
+  - `server/api/convert.js`
+  - `README.md`
+  - issue `#5` via `gh issue view 5 --repo Darthlyrical/universal-music-link`
+
+  Findings:
+  - `preferences` has stub handlers, but the router is still not mounted in `server/app.js`
+  - `conversions` and `convert` are still empty router files with no stub handlers
+  - no catch-all JSON 404 handler is present at the bottom of `server/app.js`
+  - `README.md` documents `/preferences`, `/conversions`, and `/convert` even though the current app wiring does not expose them yet
+
+  Verification notes:
+  - syntax checks passed for `server/app.js`, `server/api/preferences.js`, `server/api/conversions.js`, and `server/api/convert.js`
+  - attempted runtime startup with `npm start` in `server/`
+  - startup failed before listening because `server/server.js` awaits `db.connect()` first and PostgreSQL connection failed in this environment, so live route responses could not be fully verified here
+
+  Sentry conclusion:
+  - issue `#5` is still **partial**
+  - current strongest next step is to mount `preferences`, add stub handlers for `conversions` and `convert`, then add the JSON 404 handler and re-test routes directly from the backend side
+
+### 2026-04-08 20:16:14 CDT
+- User:
+  i dont lik that after pressing comma, vs code autofills with a method or variable that I did not want to use
+- Codex:
+  Explained that this is usually VS Code accepting an autocomplete suggestion on a "commit character" such as a comma, period, or parenthesis.
+
+  Recommended the main fix:
+  - turn off `Editor: Accept Suggestion On Commit Character`
+
+  Also suggested related settings the user can tune if needed:
+  - `Editor: Accept Suggestion On Enter`
+  - `Editor: Quick Suggestions`
+  - `Editor: Suggest On Trigger Characters`
+
+  Practical guidance given:
+  - open VS Code Settings
+  - search for the setting names above
+  - disable the commit-character setting first because it is the most likely cause of comma-triggered unwanted autocomplete acceptance
+
+  Concept references:
+  - VS Code IntelliSense: https://code.visualstudio.com/docs/editor/intellisense
+  - VS Code Settings: https://code.visualstudio.com/docs/getstarted/settings
+
+### 2026-04-08 20:17:21 CDT
+- User:
+  yes help me with that
+- Codex:
+  Provided a calmer VS Code autocomplete tuning approach aimed at reducing unwanted suggestion acceptance without turning IntelliSense off completely.
+
+  Recommended a balanced starting configuration using settings such as:
+  - `editor.acceptSuggestionOnCommitCharacter: false`
+  - `editor.acceptSuggestionOnEnter: "smart"`
+  - `editor.quickSuggestions` enabled for code but disabled for comments/strings
+  - `editor.tabCompletion: "off"`
+  - `editor.inlineSuggest.enabled: false`
+  - `editor.snippetSuggestions: "bottom"`
+
+  Also explained why each setting matters and suggested using `Ctrl+Space` to manually trigger suggestions when needed.
+
+  Concept references:
+  - VS Code IntelliSense: https://code.visualstudio.com/docs/editor/intellisense
+  - VS Code Settings JSON: https://code.visualstudio.com/docs/getstarted/settings
+
+### 2026-04-08 20:22:46 CDT
+- User:
+  where in the json do I paste
+- Codex:
+  Reviewed the user's current VS Code `settings.json` snippet and explained that the new editor settings should be added as additional top-level key/value pairs inside the existing outer `{ ... }` object.
+
+  Clarified the practical rule:
+  - do not paste a second full JSON object
+  - add the new settings as normal sibling entries, separated by commas
+
+  Provided an example placement by inserting the IntelliSense-related `editor.*` settings directly after the existing `editor.formatOnSave` line so the structure stays valid and easy to read.
+
+  Concept references:
+  - VS Code Settings JSON: https://code.visualstudio.com/docs/getstarted/settings
+
+### 2026-04-08 20:45:42 CDT
+- User:
+  test my routes now. They should all be working
+- Codex:
+  Reviewed the current backend route wiring in:
+  - `server/app.js`
+  - `server/api/preferences.js`
+  - `server/api/conversions.js`
+  - `server/api/convert.js`
+  - `server/api/users.js`
+
+  Started the backend with local database access and verified the server reached:
+  - `Listening on port 3000`
+
+  Route checks performed with `curl` against the local backend:
+  - `GET /health` -> `200 OK`
+  - `GET /preferences` -> `200 OK` with JSON stub response
+  - `PUT /preferences` -> `200 OK` with JSON stub response
+  - `GET /conversions` -> `200 OK` with JSON stub response
+  - `DELETE /conversions/test-id` -> `200 OK` with JSON stub response
+  - `POST /convert` -> `200 OK` with JSON stub response
+  - `POST /users/register` with empty JSON body -> `400 Bad Request` (`Missing fields: email,password`)
+  - `POST /users/login` with empty JSON body -> `400 Bad Request` (`Missing fields: email,password`)
+  - `GET /does-not-exist` -> `404 Not Found`
+
+  Important findings from the verification:
+  - route mounting is working for the planned `#5` endpoints
+  - users routes were verified at the validation layer only to avoid writing test user data into the database
+  - the unknown-route response is still Express's default HTML 404 page, not the consistent JSON 404 response required by issue `#5`
+  - `DELETE /conversions/:id` currently returns a placeholder string for `id` rather than echoing `req.params.id`
+
+  Conclusion:
+  - the main route wiring is working
+  - issue `#5` appears very close, but is not fully complete until the custom JSON 404 behavior is added
+
+### 2026-04-08 20:49:21 CDT
+- User:
+  alright those have been added
+- Codex:
+  Re-reviewed the two remaining gaps for issue `#5`:
+  - custom JSON 404 behavior in `server/app.js`
+  - dynamic route-param echoing in `server/api/conversions.js`
+
+  What was checked:
+  - `server/app.js`
+  - `server/api/conversions.js`
+  - syntax validation with `node --check`
+
+  Runtime verification:
+  - restarted the backend successfully and confirmed `Listening on port 3000`
+  - `GET /does-not-exist` now returns:
+    - `404 Not Found`
+    - JSON body: `{"message":"Route not found."}`
+  - `DELETE /conversions/test-id` now returns:
+    - `200 OK`
+    - JSON body includes `id: "test-id"`
+
+  Final conclusion:
+  - the route-wiring requirements for issue `#5` are now satisfied
+  - the app has mounted route modules, live stub responses, and a consistent JSON 404 for unknown routes
+
+### 2026-04-08 20:53:49 CDT
+- User:
+  how many issues should I complete per day(not including stretch features) if I have a code defense call with my instructor on the 22nd
+- Codex:
+  Checked the live open issue list and compared it against the current repository state before answering.
+
+  Findings:
+  - open issues currently listed: `82`
+  - obvious future/stretch-style items were excluded using the repo's `README.md` "Future Improvements" and "Stretch Goals" direction
+  - that still leaves roughly `69` non-stretch issues on paper
+
+  Important context explained:
+  - that raw number is inflated because some open issues appear stale relative to the codebase
+  - examples already present locally include:
+    - auth/register/login work in `server/api/users.js`
+    - revised schema tables in `server/db/schema.sql`
+
+  Timeline clarification:
+  - from `2026-04-08` to `2026-04-22` there are `14` days until the defense date, or `15` calendar days if counting today
+
+  Guidance given:
+  - a literal "finish all listed non-stretch issues" pace would be about `4.6` to `4.9` issues per day, which is not a good planning target
+  - a more realistic pace is about `2 meaningful issues per day`, with some days counting as `1 medium issue + 1 small issue`
+  - first priority should be a board cleanup/reclassification pass so the remaining issue count reflects reality before using issue/day math for planning
+
+  Recommended structure:
+  - short cleanup pass first for stale completed issues
+  - then focus on defense-critical core issues only
+  - leave at least one buffer/rehearsal day before the code defense
+
+### 2026-04-08 20:56:43 CDT
+- User:
+  yes do that and prep a to do list md for all those that are partially done
+- Codex:
+  Audited the live open GitHub issues against the local codebase to separate:
+  - open issues that now look complete
+  - open issues that are genuinely partial
+
+  Issues identified as likely complete-but-still-open included:
+  - `#6` Initialize React app
+  - `#10` Write initial README and project description
+  - `#11` Create `/convert` endpoint (initial stub)
+  - `#28` Create users table
+  - `#40` Create login endpoint
+  - `#41` Hash passwords with bcrypt
+  - `#42` Generate JWT tokens
+
+  Issues identified as partial included work across:
+  - env setup (`#9`)
+  - register/auth flow (`#39`, `#43`)
+  - preferences (`#29`, `#55`, `#56`)
+  - conversions/history (`#30`, `#49`, `#50`, `#51`)
+  - schema usage/docs cleanup (`#32`, `#86`, `#87`, `#89`)
+
+  Created a dated working note at:
+  - `2026-04-08-partially-done-issues-todo.md`
+
+  The note includes:
+  - a summary of open issues that look complete
+  - a priority-ordered list of partial issues
+  - concrete remaining tasks for each partial issue cluster
+  - helpful local file references for where the remaining work likely belongs
+
+### 2026-04-08 21:05:00 CDT
+- User:
+  ok do that but before, review my issues again. I moved some around on the project board
+- Codex:
+  Re-checked both the live GitHub issue list and the project board state after the user's board updates.
+
+  Verified GitHub access/status:
+  - `gh auth status` succeeded with valid `project` scope
+
+  Re-checked project board columns for the key audited issues.
+
+  Good alignment found:
+  - `#6` Initialize React app -> `Done`
+  - `#10` Write initial README and project description -> `Done`
+  - `#28` Create users table -> `Done`
+  - `#41` Hash passwords with bcrypt -> `Done`
+  - `#42` Generate JWT tokens -> `Done`
+  - `#9`, `#29`, `#30`, `#32`, `#39`, `#43`, `#55`, `#56`, `#86`, `#87` -> `In Progress`
+  - `#89` -> `Ready`
+
+  Important mismatches still present:
+  - several issues are still GitHub-issue `OPEN` even though the project board column is now `Done`
+  - specifically: `#6`, `#10`, `#28`, `#41`, and `#42`
+  - `#11` Create `/convert` endpoint (initial stub) is still on the board as `Ready`, but local code already has the stub route mounted and previously verified
+  - `#40` Create login endpoint remains `In Progress`; code exists, so it may be close to `Done` once happy-path verification is confirmed
+
+  This re-review was used before continuing into the next sentry-style review so the board guidance would reflect the latest project-board changes.
+
+### 2026-04-08 21:05:00 CDT
+- User:
+  ok do that but before, review my issues again. I moved some around on the project board
+- Codex:
+  Continued into the previously requested sentry-style review for issue `#9` after the board refresh.
+
+  Sentry findings for `#9`:
+  - `server/.env` exists
+  - backend scripts already load env files via `--env-file=.env`
+  - current code directly reads `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN`, and optional `PORT`
+  - `server/.env.example` is still missing
+  - startup env validation is still missing
+  - `README.md` backend setup does not fully match the env vars currently used by the backend
+
+  Created a focused working note:
+  - `2026-04-08-issue-9-todo.md`
+
+  The note includes:
+  - a sentry verdict for issue `#9`
+  - current env variable inventory
+  - what is already working
+  - what is still missing
+  - a step-by-step implementation order for finishing the issue
