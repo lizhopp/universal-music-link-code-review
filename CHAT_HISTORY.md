@@ -1867,3 +1867,60 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - what is already working
   - what is still missing
   - a step-by-step implementation order for finishing the issue
+
+### 2026-04-13 19:13:28 PDT
+- User:
+  Asked for guidance on setting up Spotify environment variables, where a reusable Spotify token helper should live, and requested that the teaching be logged.
+- Codex:
+  Walked through the Spotify backend env setup conceptually without implementing code.
+
+  Environment variable guidance covered:
+  - the backend should store Spotify credentials in `server/.env`
+  - the relevant variables are:
+
+  ```env
+  SPOTIFY_CLIENT_ID=
+  SPOTIFY_CLIENT_SECRET=
+  ```
+
+  - `SPOTIFY_CLIENT_ID` was already available from the user
+  - `SPOTIFY_CLIENT_SECRET` should be copied from the Spotify Developer Dashboard for the same app
+  - env values should be kept backend-only and never exposed in the frontend
+  - after editing `.env`, the backend process should be restarted so the new values are picked up
+
+  Explained the Spotify client-credentials flow in beginner-friendly terms:
+  - the backend sends `client_id` + `client_secret` to Spotify Accounts service
+  - Spotify returns a short-lived access token
+  - the backend uses that token in a `Bearer` header for later Spotify Web API requests
+  - this belongs on the backend because the client secret must remain private
+
+  Broke down the token request shape:
+  - endpoint:
+    - `POST https://accounts.spotify.com/api/token`
+  - headers:
+    - `Authorization: Basic <base64(clientId:clientSecret)>`
+    - `Content-Type: application/x-www-form-urlencoded`
+  - body:
+    - `grant_type=client_credentials`
+
+  Clarified the credential-encoding mental model:
+  - first combine credentials as `clientId:clientSecret`
+  - then base64-encode that full string
+  - then attach it to the `Authorization: Basic ...` header
+
+  Walked through the helper-function pseudo-logic for `getSpotifyAccessToken()`:
+  - read `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` from `process.env`
+  - fail early if either is missing
+  - build and encode the `clientId:clientSecret` string
+  - POST to Spotify token endpoint
+  - read `response.data.access_token`
+  - return the token string
+  - let failures surface clearly for missing env vars, invalid credentials, or Spotify request errors
+
+  Recommended placement for the reusable helper:
+  - `server/utils/spotify.js`
+
+  Reasoning given:
+  - keeps the secret on the backend
+  - makes the helper reusable across routes
+  - keeps `server/api/convert.js` focused on request/response logic instead of low-level Spotify auth mechanics
