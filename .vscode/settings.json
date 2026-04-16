@@ -1,0 +1,12 @@
+{
+  "indentRainbow.colors": [
+    "rgba(122, 162, 247, 0.20)",
+    "rgba(158, 206, 106, 0.18)",
+    "rgba(224, 175, 104, 0.18)",
+    "rgba(187, 154, 247, 0.20)",
+    "rgba(125, 207, 255, 0.18)",
+    "rgba(115, 218, 202, 0.18)"
+  ],
+  "indentRainbow.errorColor": "rgba(244, 63, 94, 0.32)",
+  "indentRainbow.indicatorStyle": "light"
+}

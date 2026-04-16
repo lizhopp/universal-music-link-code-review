@@ -1924,3 +1924,159 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - keeps the secret on the backend
   - makes the helper reusable across routes
   - keeps `server/api/convert.js` focused on request/response logic instead of low-level Spotify auth mechanics
+
+### 2026-04-15 10:16:17 PDT
+- User:
+  Asked to continue slowly through what the actual Spotify access-token helper code would look like, block by block, and later pointed out that the recent teaching also needed to be logged.
+- Codex:
+  Continued in teaching mode without editing the Spotify helper code itself.
+
+  Broke the function into small conceptual blocks:
+  - import `axios`
+  - create `export async function getSpotifyAccessToken()`
+  - read `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` from `process.env`
+  - add a guard clause for missing credentials
+  - build the `clientId:clientSecret` string
+  - base64-encode that string with `Buffer.from(...).toString("base64")`
+  - create the form body with `new URLSearchParams({ grant_type: "client_credentials" })`
+  - make the `axios.post(...)` request to Spotify Accounts service
+  - return `response.data.access_token`
+
+  Then explained the next refinement: wrapping the network request in `try/catch`.
+
+  Reasoning covered:
+  - only the request itself needs `try/catch`
+  - env validation can remain outside as a guard clause
+  - `catch` should surface clearer failure messages for:
+    - invalid credentials
+    - Spotify error responses
+    - network/request failures
+
+  Discussed a cleaner beginner-friendly error pattern:
+  - inspect `error.response?.data`
+  - prefer `error_description`, then `error`, then fallback `error.message`
+  - rethrow a clearer error like:
+    - `Failed to get Spotify access token: ...`
+
+  Prepared to show the fully assembled function with `try/catch` and explain it section by section.
+
+### 2026-04-15 10:49:35 PDT
+- User:
+  Asked whether the backend startup issue could be happening because the environment was originally configured on the desktop machine while the user is currently working on a laptop, and then asked for that explanation to be logged.
+- Codex:
+  Explained that this is very plausible and that the likely issue is machine-specific local environment assumptions rather than the `.env` file being inherently tied to one machine.
+
+  Clarified the important distinction:
+  - repo code can sync across machines cleanly
+  - local services and machine-specific environment assumptions often do not
+
+  Highlighted that Spotify credentials can usually be reused across machines, but local database configuration often needs to be revalidated per machine.
+
+  Used `DATABASE_URL` as the main example:
+  - `DATABASE_URL=postgresql://darthlyrical@localhost:5432/universal_music_link`
+
+  Explained what that URL assumes on the laptop:
+  - matching local username
+  - PostgreSQL installed
+  - PostgreSQL running
+  - TCP access on port `5432`
+  - database `universal_music_link` existing locally on that machine
+
+  Also explained that one machine may allow local socket access while another setup may behave differently for TCP `localhost` access, which can make backend startup stall at `await db.connect()` even when some `psql` commands seem to work.
+
+  Recommended validating the laptop-specific DB connection directly and treating this as a cross-machine environment mismatch first, not as a route-logic bug.
+
+### 2026-04-15 12:11:56 PDT
+- User:
+  Asked to update `README.md` so issue `#9` (environment variable configuration) could be finished.
+- Codex:
+  Updated the backend setup section in `README.md` so the documented env vars now match the backend's current startup expectations.
+
+  The README env example now includes:
+  - `DATABASE_URL=postgresql://your_username@127.0.0.1:5432/universal_music_link`
+  - `JWT_SECRET=replace_me`
+  - `CORS_ORIGIN=http://localhost:5173`
+  - `SPOTIFY_CLIENT_ID=replace_me`
+  - `SPOTIFY_CLIENT_SECRET=replace_me`
+  - `PORT=3000`
+
+  This aligned the setup docs with:
+  - `server/.env.example`
+  - fail-fast validation in `server/server.js`
+  - env usage in `server/app.js`, `server/db/client.js`, `server/utils/jwt.js`, and `server/utils/spotify.js`
+
+### 2026-04-15 12:41:09 PDT
+- User:
+  Confirmed the temporary `POST /convert` test returned a real Spotify access token, then asked to begin planning issue `#19` and to make sure the conversation was logged.
+- Codex:
+  Confirmed the Spotify API client setup was working in practice.
+
+  Verified outcome:
+  - `POST /convert` returned a JSON response containing a valid-looking Spotify access token
+  - this demonstrated that:
+    - `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` were being read correctly from `server/.env`
+    - `server/utils/spotify.js` could successfully complete the Spotify client-credentials flow
+    - `server/api/convert.js` could import and await the helper successfully
+
+  Based on that result, treated issue `#16` (Setup Spotify API client) as effectively proven and identified issue `#19` (Fetch track metadata from Spotify) as the next logical step.
+
+  Began planning `#19` around a narrow first success condition:
+  - use the existing token helper
+  - call Spotify's track endpoint with a known Spotify track ID
+  - inspect the returned metadata
+  - keep the route temporary and simple for debugging before folding it into the real conversion flow
+
+### 2026-04-15 19:01:14 PDT
+- User:
+  Continued the Spotify-side vertical slice by verifying the helper chain for fetching metadata, normalizing Spotify track data, extracting a Spotify track ID from a full URL, and detecting the source service from a URL. Confirmed the final service-detection test was working.
+- Codex:
+  Guided the user through the next backend helper sequence after issue `#16`:
+  - `#19` Fetch track metadata from Spotify
+  - `#20` Normalize Spotify track data
+  - `#18` Extract Spotify track ID from URL
+  - `#17` Detect source service from URL
+
+  For `#19`, planned and discussed a helper shape like:
+  - `getSpotifyTrackById(trackId)`
+  - uses `getSpotifyAccessToken()`
+  - calls `GET https://api.spotify.com/v1/tracks/{id}`
+  - returns raw Spotify track data first
+
+  The user then confirmed a successful Spotify track metadata response, including fields such as:
+  - `id`
+  - `name`
+  - `artists`
+  - `album`
+  - `duration_ms`
+  - `external_urls.spotify`
+  - `external_ids.isrc`
+
+  For `#20`, planned and discussed a normalization helper like:
+  - `normalizeSpotifyTrack(track)`
+  - returns a smaller internal shape containing:
+    - `sourcePlatformSlug`
+    - `platformTrackId`
+    - `sourceUrl`
+    - `title`
+    - `primaryArtist`
+    - `albumName`
+    - `durationMs`
+    - `isrc`
+
+  The user then confirmed the normalized response looked correct.
+
+  For `#18`, planned and discussed extracting a Spotify track ID from a full track URL using the `URL` class and `pathname`, including why `pathname` stops before the query string.
+  The user confirmed the extraction test was working.
+
+  For `#17`, planned and discussed detecting the source service from a URL using the parsed hostname and returning normalized internal slugs such as:
+  - `spotify`
+  - `apple-music`
+
+  The user confirmed the service-detection test was also working.
+
+  At this point, the backend Spotify-side building blocks were effectively proven in isolation:
+  - setup Spotify API client (`#16`)
+  - fetch Spotify track metadata (`#19`)
+  - normalize Spotify track data (`#20`)
+  - extract Spotify track ID from URL (`#18`)
+  - detect source service from URL (`#17`)

@@ -438,10 +438,12 @@ npm install
 
 Create `.env`:
 
-DATABASE_URL=postgresql://<user>@localhost:5432/universal_music_link\
-JWT_SECRET=\
-SPOTIFY_CLIENT_ID=\
-SPOTIFY_CLIENT_SECRET=
+DATABASE_URL=postgresql://your_username@127.0.0.1:5432/universal_music_link\
+JWT_SECRET=replace_me\
+CORS_ORIGIN=http://localhost:5173\
+SPOTIFY_CLIENT_ID=replace_me\
+SPOTIFY_CLIENT_SECRET=replace_me\
+PORT=3000
 
 Apply schema:
 
