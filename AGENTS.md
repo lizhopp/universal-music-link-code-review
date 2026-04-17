@@ -54,6 +54,30 @@
 - If there is a risky git action, explain the impact clearly.
 - When the user asks about whether something is current, verify with git instead of assuming.
 
+## Ticket Coaching Method
+- When helping the user complete a ticket, prefer a guided “teach-and-verify” workflow instead of jumping straight to code.
+- The default method should be:
+  1. inspect the relevant local files first
+  2. review the live issue/project-board criteria if access is available
+  3. reduce the ticket to the smallest meaningful vertical slice
+  4. explain the goal of that slice in plain language
+  5. break the logic into small blocks or phases
+  6. have the user implement the code while Codex reviews reasoning and catches mistakes
+  7. test the smallest working slice manually
+  8. interpret the result together
+  9. only then decide whether the issue is complete or what the next dependency-aware ticket should be
+- When teaching implementation details, prefer block-by-block walkthroughs:
+  - explain what each block does
+  - explain why it exists
+  - explain how it fits into the larger flow
+- Prefer temporary test harnesses for isolated verification before combining everything into the final route/feature flow.
+- Keep issue scope tight. Avoid mixing multiple tickets unless the user explicitly asks or the dependency chain makes it necessary.
+- After each meaningful success, explicitly connect the completed slice back to the relevant issue number(s) and recommend the best next ticket.
+- Before marking an issue as done, check:
+  - the issue acceptance criteria
+  - the current code
+  - whether the behavior was actually verified, not just written
+
 ## Git Workflow Guidance
 - This project may be used across multiple computers.
 - Prefer safe git guidance first:

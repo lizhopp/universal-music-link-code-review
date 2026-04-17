@@ -2080,3 +2080,82 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - normalize Spotify track data (`#20`)
   - extract Spotify track ID from URL (`#18`)
   - detect source service from URL (`#17`)
+
+### 2026-04-17 13:31:56 CDT
+- User:
+  Asked Codex to review `AGENTS.md` and `CHAT_HISTORY.md`, then help diagnose why the backend server was showing the same startup problem on this machine that had happened earlier on the laptop. Later clarified that `npm start` had been run from the `server/` directory, then reported that the backend was working again and asked what the issue had been.
+- Codex:
+  Reviewed repo guidance first, then inspected backend startup files and recent chat history related to server startup and cross-machine environment assumptions.
+
+  Files checked:
+  - `AGENTS.md`
+  - `CHAT_HISTORY.md`
+  - `server/package.json`
+  - `server/server.js`
+  - `server/app.js`
+  - `server/db/client.js`
+  - `server/api/convert.js`
+  - `server/utils/spotify.js`
+  - middleware/router dependencies imported by `server/app.js`
+
+  Commands and findings:
+  - Confirmed `server/package.json` defines:
+    - `start`: `node --env-file=.env server.js`
+  - Confirmed startup path in `server/server.js`:
+    - validate required env vars
+    - `await db.connect()`
+    - `app.listen(PORT, ...)`
+  - Checked env key inventory in `server/.env` without printing secrets:
+    - `DATABASE_URL`
+    - `JWT_SECRET`
+    - `SPOTIFY_CLIENT_ID`
+    - `SPOTIFY_CLIENT_SECRET`
+    - `CORS_ORIGIN`
+    - `PORT`
+  - Parsed `DATABASE_URL` shape and confirmed it targets local Postgres on:
+    - host `127.0.0.1`
+    - port `5432`
+    - database `universal_music_link`
+  - Initial sandboxed checks misleadingly suggested DB/network trouble:
+    - `pg_isready -h 127.0.0.1 -p 5432 -d universal_music_link` -> `no response`
+    - sandboxed startup/health checks did not reliably reflect the real local environment
+  - Re-ran direct checks outside the sandbox:
+    - `node --env-file=.env -e "... db.connect() ..."` -> `connect-ok`
+    - `node --env-file=.env server.js` -> `Listening on port 3000...`
+    - `curl -i http://127.0.0.1:3000/health` -> `HTTP/1.1 200 OK`
+  - Re-checked `npm start` from `server/` with verbose logging:
+    - `npm start --loglevel verbose`
+    - observed:
+      - `> server@1.0.0 start`
+      - `> node --env-file=.env server.js`
+      - `Listening on port 3000...`
+
+  Final diagnosis shared with the user:
+  - No backend code/config bug was reproduced on this machine.
+  - The only concrete failure observed during debugging came from the sandboxed tool environment, which interfered with localhost/Postgres checks and made startup look stalled.
+  - Since both `node --env-file=.env server.js` and `npm start` in `server/` worked in the real environment, the earlier problem could not be pinned to a persistent repo-side bug.
+  - Most likely explanation: a transient local environment/startup condition rather than broken backend code.
+
+### 2026-04-17 14:08:08 CDT
+- User:
+  Said they liked the ticket-help workflow being used and asked for that method to be documented both in `CHAT_HISTORY.md` and in `AGENTS.md` so Codex on the other machine could follow the same approach.
+- Codex:
+  Documented the preferred ticket-coaching workflow in `AGENTS.md` under a new `Ticket Coaching Method` section.
+
+  The documented method standardizes this approach:
+  - inspect local files first
+  - review the live issue/board criteria when available
+  - reduce the task to the smallest meaningful vertical slice
+  - explain the slice in plain language
+  - teach the logic in small blocks/phases
+  - let the user do the implementation while Codex reviews reasoning
+  - manually test the smallest working slice
+  - interpret the result together
+  - then decide whether the issue is complete and what the next dependency-aware ticket should be
+
+  Also documented expectations to:
+  - prefer block-by-block teaching for implementation details
+  - use temporary test harnesses for isolated verification before combining flows
+  - keep scope tight to the current issue
+  - tie verified progress back to specific issue numbers
+  - verify real behavior before suggesting an issue is done
