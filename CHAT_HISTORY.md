@@ -2285,3 +2285,119 @@ From now on, entries include detailed assistant outputs (not only summaries).
     - `example-codex.md` for style and delivery
 
   This was done specifically to make future Codex sessions on the other machine more consistent and less dependent on inferring style from one pasted conversation.
+
+### 2026-04-17 14:39:02 CDT
+- User:
+  Said Codex still was not formatting guidance the way they expected, noted that `example-codex.md` and `AGENTS.md` had been updated with more guidance, and asked Codex to say if any further clarification was needed.
+- Codex:
+  Re-read the updated `AGENTS.md` and `example-codex.md` and identified the intended delivery pattern more explicitly:
+  - ground the current step first
+  - keep the issue narrow
+  - explain the immediate logic in plain language
+  - teach in small `Block 1 / Block 2 / Block 3` sections
+  - include a short `Why:` after each block
+  - end with one concrete next move or test
+
+  Confirmed that no more clarification was needed at this point and that future ticket guidance should follow the repo’s new style guide more literally rather than approximating it.
+
+### 2026-04-17 14:40:31 CDT
+- User:
+  Asked Codex to restart the current ticket guidance in the newly updated repo style.
+- Codex:
+  Continued with issue `#11` (`POST /convert` initial stub) using the updated teaching format from `AGENTS.md` and `example-codex.md`:
+  - ground the current slice first
+  - explain the logic in plain language
+  - teach in small blocks with short `Why:` explanations
+  - end with one concrete next implementation move or manual test
+
+### 2026-04-17 14:41:22 CDT
+- User:
+  Clarified that the block-by-block guidance also needs to include example code, and said that requirement is key.
+- Codex:
+  Acknowledged the missing piece in the teaching format and adjusted the expected delivery pattern for future ticket coaching:
+  - each block should include example code
+  - each code block should be followed by a short `Why:` explanation
+  - the response should still stay narrow to the current issue slice rather than becoming a full implementation dump
+
+### 2026-04-17 15:07:39 CDT
+- User:
+  Shared the updated `server/api/convert.js` implementation for issue `#11`, reported that manual testing worked, and showed a successful JSON response proving the route handled a real Spotify URL and returned normalized track data.
+- Codex:
+  Interpreted the successful result as verification that the `/convert` stub is now functioning as a real request-driven route for Spotify inputs.
+
+  Verified from the user-provided route/result that:
+  - the route reads `sourceUrl` and `requestedTargetPlatformId` from the request body
+  - `detectSourceService(...)` correctly identifies Spotify URLs
+  - `extractSpotifyTrackId(...)` correctly isolates the track ID
+  - `getSpotifyTrackById(...)` successfully fetches live Spotify metadata
+  - `normalizeSpotifyTrack(...)` returns the expected internal shape
+  - the route returns a real JSON response instead of using a hardcoded test value
+
+  Also identified one small cleanup opportunity before treating the slice as fully polished:
+  - `getSpotifyAccessToken` is still imported in `server/api/convert.js` but is no longer used there
+
+  Recommended interpretation:
+  - issue `#11` is effectively proven in code and manual testing
+  - the next dependency-aware issue should be `#21` (Setup Apple Music API client), since the source-side Spotify flow is now verified and the next blocker is target-side Apple Music integration
+
+### 2026-04-17 15:15:49 CDT
+- User:
+  Shared the unsupported-service test result for `POST /convert`:
+  `{"message":"Currently can only convert spotify urls"}`
+- Codex:
+  Interpreted this as successful verification of the initial failure path for issue `#11`.
+
+  Confirmed against current code and issue criteria that:
+  - the happy path had already been manually verified with a real Spotify URL
+  - the unsupported-service path now also returns a clear `400` message
+  - `server/api/convert.js` is now using real request body input, service detection, Spotify extraction/fetch/normalize helpers, and explicit JSON responses
+
+  Board/status interpretation:
+  - `#11` is still open and in `Ready` on the project board
+  - local code + manual behavior now suggest that status is out of sync with reality
+
+  Recommended next step:
+  - treat `#11` as effectively complete unless the user wants one more polish pass
+  - move on to `#21` (Setup Apple Music API client) as the next dependency-aware issue, because target-side Apple Music integration is now the main blocker for full conversion
+
+### 2026-04-17 15:24:09 CDT
+- User:
+  Reported that the missing-field validation test for `POST /convert` also worked.
+- Codex:
+  Interpreted that final test as the last major verification needed for issue `#11`.
+
+  At this point, the route has been manually verified for:
+  - valid Spotify input
+  - unsupported-service input
+  - missing required field input
+
+  Conclusion shared:
+  - issue `#11` is effectively complete in local code and manual testing
+  - the project board status for `#11` is likely out of sync
+  - the next dependency-aware issue should be `#21` (Setup Apple Music API client)
+
+### 2026-04-17 15:25:25 CDT
+- User:
+  Asked to continue into the next issue after finishing `#11`.
+- Codex:
+  Began issue `#21` (`Setup Apple Music API client`) using the same teach-and-verify workflow.
+
+  What was checked first:
+  - live issue `#21`
+  - related issue `#22`
+  - current backend code for `/convert`
+  - current env key inventory in `server/.env`
+  - Apple Music mentions in the repo
+
+  Findings:
+  - `#21` is already marked `In Progress` on the board
+  - `#22` (`Search Apple Music for track`) is still separate and should remain separate
+  - the repo currently has no Apple Music backend helper file yet
+  - `server/.env` currently has Spotify env vars but no Apple Music env vars
+
+  Also checked official Apple developer documentation before giving guidance.
+  Main conclusion:
+  - the first slice for `#21` should be Apple Music authentication/client setup only
+  - catalog requests use an Apple Music developer token
+  - user-specific tokens are for personalized `/me` requests and are not needed for the first catalog-search/client-setup slice
+  - because the env vars do not exist yet, the next guided step should begin with Apple Music env/config plus a small backend helper rather than jumping directly into search logic

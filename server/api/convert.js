@@ -1,28 +1,42 @@
 import express from "express";
 import {
-  getSpotifyAccessToken,
   getSpotifyTrackById,
   normalizeSpotifyTrack,
   extractSpotifyTrackId,
   detectSourceService,
 } from "#utils/spotify";
 
+import requireBody from "#middleware/requireBody";
+
 const router = express.Router();
 export default router;
 
-// router.post('/', async (req, res) =>{
-//     const token = await getSpotifyAccessToken();
+router.post("/", requireBody(["sourceUrl", "requestedTargetPlatformId"]),
+  async (req, res) => {
+    try {
+      const { sourceUrl, requestedTargetPlatformId } = req.body;
 
-//     res.status(200).json({
-//         token,
-//     })
-// })
+      const sourceService = detectSourceService(sourceUrl);
 
-router.post("/", async (req, res) => {
-  const trackId =
-    "https://open.spotify.com/track/5aE6I8Q3rCgTT31lZSzFZT?si=de5ab461fd174f0f";
-  // const track = await getSpotifyTrackById(trackId);
-  const normalized = detectSourceService(trackId);
+      if (sourceService !== 'spotify') {
+        return res.status(400).json({
+          message: "Currently can only convert spotify urls",
+        });
+      }
 
-  res.status(200).json({normalized,});
-});
+      const trackId = extractSpotifyTrackId(sourceUrl);
+      const rawTrack = await getSpotifyTrackById(trackId);
+      const normalizedTrack = normalizeSpotifyTrack(rawTrack);
+
+      return res.status(200).json({
+        sourceService,
+        requestedTargetPlatformId, normalizedTrack,
+      });
+
+    } catch (error) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+  }
+);
