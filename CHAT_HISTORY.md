@@ -2159,3 +2159,82 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - keep scope tight to the current issue
   - tie verified progress back to specific issue numbers
   - verify real behavior before suggesting an issue is done
+
+### 2026-04-17 14:12:13 CDT
+- User:
+  Asked Codex to review the most recent `CHAT_HISTORY.md` addition and `AGENTS.md`, then help continue from where work had last stopped.
+- Codex:
+  Re-reviewed the new repo guidance and latest transcript entry, then inspected the current conversion-related code and live issue state before recommending the next dependency-aware slice.
+
+  Files and docs checked:
+  - `AGENTS.md`
+  - `CHAT_HISTORY.md`
+  - `server/app.js`
+  - `server/api/convert.js`
+  - `server/utils/spotify.js`
+  - `server/middleware/requireBody.js`
+  - `README.md` conversion section
+
+  Issue/board checks performed:
+  - `gh issue view 11`
+  - `gh issue view 16`
+  - `gh issue view 17`
+  - `gh issue view 18`
+  - `gh issue view 19`
+  - `gh issue view 20`
+  - `gh issue view 21`
+  - `gh issue view 22`
+  - `gh issue view 23`
+  - `gh issue view 24`
+  - `gh issue list --state open --limit 50`
+
+  Findings:
+  - `#16`, `#17`, `#18`, `#19`, and `#20` are all closed and match the helper work already present in `server/utils/spotify.js`.
+  - `server/api/convert.js` is still only a temporary hardcoded stub:
+    - it ignores `req.body`
+    - it uses a hardcoded Spotify URL
+    - it currently returns only `detectSourceService(...)`
+  - `README.md` already documents `POST /convert` with request fields:
+    - `sourceUrl`
+    - `requestedTargetPlatformId`
+  - `#11` (`Create /convert endpoint (initial stub)`) is still open and remains the best next issue because the route exists but is not yet using the real request-driven flow.
+  - Apple Music issues `#21` and `#22` are still open, but they are not the best immediate next step because the current backend has not yet connected the finished Spotify helper pieces into the real `/convert` route contract.
+
+  Recommended next slice:
+  - Continue with `#11` first.
+  - Use the already-finished Spotify helpers inside `POST /convert`.
+  - Make the route accept a real request body, detect the source service, support Spotify URLs for now, fetch + normalize Spotify metadata, and return a debug-friendly JSON response.
+  - Keep Apple Music search/matching for later tickets after the real request-driven `/convert` skeleton is working.
+
+### 2026-04-17 14:22:15 CDT
+- User:
+  Repeated the preferred ticket-help workflow and asked Codex to continue using it:
+  - explain the slice in plain language
+  - teach the logic in small blocks/phases
+  - let the user do the implementation while Codex reviews reasoning
+  - manually test the smallest working slice
+  - interpret the result together
+  - then decide whether the issue is complete and what the next dependency-aware ticket should be
+- Codex:
+  Continued in guided coaching mode for issue `#11` instead of editing code directly.
+
+  Taught the next slice in plain language:
+  - the goal is to turn `POST /convert` from a hardcoded experiment into a real request-driven route
+  - the route does not need full Apple Music conversion yet
+  - it only needs to prove that the backend can accept a real Spotify URL from the request body, identify it as Spotify, fetch the track metadata, normalize it, and return that normalized data in a clean JSON response
+
+  Broke the logic into phases for the user to implement:
+  - require the expected request body fields
+  - read `sourceUrl` from `req.body`
+  - detect the source service
+  - reject unsupported services for now
+  - for Spotify only:
+    - extract the Spotify track ID
+    - fetch the Spotify track data
+    - normalize the data
+    - return a debug-friendly JSON payload
+
+  Also set the intended verification step:
+  - manually test `POST /convert` with a real Spotify URL using `curl` or Postman
+  - inspect whether the response shape proves the request-driven route is working
+  - then decide whether `#11` is complete or whether one more cleanup pass is needed before moving to `#21`
