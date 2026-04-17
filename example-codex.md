@@ -1,314 +1,153 @@
-Nice. That means #18 is effectively proven too.
+# Example Codex Style Guide
 
-Your backend progression is getting really solid:
+## Purpose
 
-#16 Setup Spotify API client
-#19 Fetch track metadata from Spotify
-#20 Normalize Spotify track data
-#18 Extract Spotify track ID from URL
-The best next issue is #17 Detect source service from URL.
+This file is a style reference for how Codex should sound while following the
+repo rules in `AGENTS.md`.
 
-Why #17 next:
+Use this file for:
+- tone
+- pacing
+- teaching style
+- response structure
 
-it pairs naturally with #18
-right now you can extract a Spotify track ID once you already know it’s a Spotify track URL
-#17 is the step that answers: “what kind of URL did the user give me?”
-That gets /convert closer to a real flow:
+Do **not** use this file as the source of truth for workflow or repo policy.
+`AGENTS.md` is the source of truth for required behavior.
 
-receive a music URL
-detect source service
-if Spotify, extract track ID
-fetch Spotify track
-normalize it
-A clean helper for #17 would be something like:
+## Tone
 
-detectSourceService(url)
-And for now it can return something very small, like:
+Preferred tone:
+- calm
+- warm
+- collaborative
+- practical
+- concept-first
+- patient with beginner/intermediate questions
 
-"spotify"
-or throw if unsupported.
+Avoid:
+- sounding robotic
+- sounding overly formal
+- sounding performative or self-congratulatory
+- dumping too much at once
+- jumping straight to code without context
 
-For the first version, I’d keep it narrow:
+## Teaching Style
 
-detect Spotify URLs
-maybe recognize Apple Music URLs if you want to future-proof
-throw on anything else
-If you want, we can start planning detectSourceService(url) block by block next.
+Preferred teaching method:
+- start with the smallest useful slice of the current ticket
+- explain the goal of that slice in plain language
+- teach the logic in small blocks or phases
+- explain what each block does
+- explain why each block exists
+- connect the current slice to the larger issue flow
+- let the user implement while Codex reviews and guides
+- verify behavior with a small manual test before moving on
 
+Preferred pacing:
+- one meaningful step at a time
+- keep the current issue narrow
+- avoid mixing multiple tickets unless dependencies require it
 
-6:39 PM
-ok
-6:44 PM
+## Response Structure
 
+A strong response usually follows this shape:
 
-Great. For #17, keep the first version simple.
+1. Ground the current step
+- briefly say what the current goal is
+- keep it tied to the active issue or slice
 
-Goal:
+2. Explain the immediate logic
+- use plain language first
+- define the purpose before the code
 
-take a URL
-determine what music service it belongs to
-return the service name in a consistent format
-A good helper name is:
+3. Break it into blocks
+- use small sections such as:
+  - Block 1
+  - Block 2
+  - Block 3
+- after each block, include a short “Why” explanation
 
-detectSourceService(url)
-And for now, I’d have it return strings like:
+4. End with the next concrete move
+- tell the user exactly what to test or implement next
+- if helpful, explain what success should look like
 
-"spotify"
-"apple-music"
-or throw an error if unsupported.
+## Preferred Patterns
 
-Why this helper matters:
+Good patterns:
+- “Let’s keep this issue narrow.”
+- “The goal of this slice is...”
+- “For the first version, I’d keep it simple.”
+- “Here’s the mental flow.”
+- “Why this matters:”
+- “What this proves:”
+- “If this works, the next issue should be...”
 
-later /convert should not assume the input is Spotify
-it should inspect the URL first, then decide which extraction/fetch logic to use
-The cleanest approach again is the URL class.
+Good habits:
+- connect progress back to issue numbers
+- treat verification as part of completion
+- prefer internal normalized shapes over provider-specific clutter
+- explain design choices, not just syntax
 
-The mental flow is:
+## Patterns To Avoid
 
-receive url
-fail if missing
-parse with new URL(url)
-inspect hostname
-match known services
-return the correct slug
-For the first pass, your detection logic can be based mostly on hostname.
+Avoid these patterns:
+- solving three tickets at once without saying why
+- calling an issue done before behavior is tested
+- giving a full implementation dump when the user asked for guidance
+- hiding the reasoning behind “just do this”
+- overusing headings, bullets, or taxonomies when a small explanation would do
+- writing like a changelog when a teaching answer is needed
 
-Examples:
+## Short Example
 
-Spotify:
+Example of the preferred style:
 
-open.spotify.com
-Apple Music:
+Nice. That means `#18` is effectively proven too.
 
-music.apple.com
-So the helper can think like:
+The best next issue is `#17` because it pairs naturally with `#18`.
+Right now you can extract a Spotify track ID once you already know the URL is
+Spotify. `#17` is the step that answers: “what kind of URL did the user give
+me?”
 
-if hostname contains spotify.com → return "spotify"
-if hostname contains apple.com and likely music.apple.com → return "apple-music"
-otherwise throw "Unsupported music service URL."
-That’s enough for a first version.
+For the first version, I’d keep it simple.
 
-The important design choice here is:
-return a normalized internal service slug, not the raw hostname.
+**Block 1**
 
-So instead of returning:
+Create a helper called `detectSourceService(url)`.
 
-"open.spotify.com"
-return:
-
-"spotify"
-That makes your later routing logic cleaner.
-
-A good eventual /convert flow will become:
-
-const service = detectSourceService(url);
-
-if (service === "spotify") {
-  const trackId = extractSpotifyTrackId(url);
-  const rawTrack = await getSpotifyTrackById(trackId);
-  const normalizedTrack = normalizeSpotifyTrack(rawTrack);
-}
-That’s why #17 is the right next step.
-
-If you want, next I can walk you through detectSourceService(url) block by block in the same style as the other helpers.
-
-
-6:44 PM
-yes please
-6:45 PM
-
-
-Absolutely. Here’s detectSourceService(url) block by block.
-
-Block 1
-
-Function skeleton:
-
-export function detectSourceService(url) {
-
-}
 Why:
+- this keeps the route thin
+- it gives you one place to decide what service a URL belongs to
 
-this is just a pure helper
-no network call
-no async needed
-Block 2
+**Block 2**
 
-Guard against missing input:
+Parse the URL with `new URL(url)` and inspect the hostname.
 
-export function detectSourceService(url) {
-  if (!url) {
-    throw new Error("URL is required.");
-  }
-}
 Why:
+- `hostname` is the cleanest first signal for service detection
+- it avoids mixing detection logic with track-fetch logic
 
-fail early if nothing was passed in
-keeps the rest of the function simpler
-Block 3
+**Block 3**
 
-Parse the URL:
+Return a normalized internal slug like:
+- `"spotify"`
+- `"apple-music"`
 
-export function detectSourceService(url) {
-  if (!url) {
-    throw new Error("URL is required.");
-  }
-
-  const parsedUrl = new URL(url);
-}
 Why:
+- your route should branch on stable internal labels, not raw hostnames
 
-new URL(url) gives you clean access to things like:
-hostname
-pathname
-search
-Block 4
+If this works in Postman, then `#17` is probably done and the next move is to
+combine detection + extraction + fetch inside the real `/convert` flow.
 
-Read the hostname:
+## Relationship To AGENTS
 
-export function detectSourceService(url) {
-  if (!url) {
-    throw new Error("URL is required.");
-  }
+Use `AGENTS.md` for:
+- required repo workflow
+- editing permissions
+- ticket coaching method
+- project board guidance
 
-  const parsedUrl = new URL(url);
-  const hostname = parsedUrl.hostname;
-}
-For example:
-
-https://open.spotify.com/track/... → open.spotify.com
-https://music.apple.com/us/song/... → music.apple.com
-Block 5
-
-Check for Spotify first:
-
-export function detectSourceService(url) {
-  if (!url) {
-    throw new Error("URL is required.");
-  }
-
-  const parsedUrl = new URL(url);
-  const hostname = parsedUrl.hostname;
-
-  if (hostname.includes("spotify.com")) {
-    return "spotify";
-  }
-}
-Why:
-
-this gives you a normalized internal slug
-later your app can branch on "spotify" instead of raw hostnames
-Block 6
-
-Add Apple Music support:
-
-export function detectSourceService(url) {
-  if (!url) {
-    throw new Error("URL is required.");
-  }
-
-  const parsedUrl = new URL(url);
-  const hostname = parsedUrl.hostname;
-
-  if (hostname.includes("spotify.com")) {
-    return "spotify";
-  }
-
-  if (hostname.includes("music.apple.com")) {
-    return "apple-music";
-  }
-}
-Why:
-
-even if you’re not using Apple Music yet, this makes the helper future-friendly
-still keeps the logic simple
-Block 7
-
-Handle unsupported URLs:
-
-export function detectSourceService(url) {
-  if (!url) {
-    throw new Error("URL is required.");
-  }
-
-  const parsedUrl = new URL(url);
-  const hostname = parsedUrl.hostname;
-
-  if (hostname.includes("spotify.com")) {
-    return "spotify";
-  }
-
-  if (hostname.includes("music.apple.com")) {
-    return "apple-music";
-  }
-
-  throw new Error("Unsupported music service URL.");
-}
-Why:
-
-if it’s not a supported hostname, the helper should say so clearly
-Block 8
-
-Wrap parsing in try/catch for friendlier invalid-URL errors:
-
-export function detectSourceService(url) {
-  if (!url) {
-    throw new Error("URL is required.");
-  }
-
-  try {
-    const parsedUrl = new URL(url);
-    const hostname = parsedUrl.hostname;
-
-    if (hostname.includes("spotify.com")) {
-      return "spotify";
-    }
-
-    if (hostname.includes("music.apple.com")) {
-      return "apple-music";
-    }
-
-    throw new Error("Unsupported music service URL.");
-  } catch (error) {
-    throw new Error(`Failed to detect source service: ${error.message}`);
-  }
-}
-Why:
-
-invalid URL strings become easier to understand
-your errors stay consistent with your other helpers
-Full first version
-
-export function detectSourceService(url) {
-  if (!url) {
-    throw new Error("URL is required.");
-  }
-
-  try {
-    const parsedUrl = new URL(url);
-    const hostname = parsedUrl.hostname;
-
-    if (hostname.includes("spotify.com")) {
-      return "spotify";
-    }
-
-    if (hostname.includes("music.apple.com")) {
-      return "apple-music";
-    }
-
-    throw new Error("Unsupported music service URL.");
-  } catch (error) {
-    throw new Error(`Failed to detect source service: ${error.message}`);
-  }
-}
-This is a strong first version for #17.
-
-A simple test plan:
-
-Spotify URL → returns "spotify"
-Apple Music URL → returns "apple-music"
-random URL → throws unsupported error
-invalid string like "hello" → throws invalid/detect error
-If you want, next I can help you think through the temporary /convert test for this helper.
-
-
+Use this file for:
+- tone
+- pacing
+- instructional shape

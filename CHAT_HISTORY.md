@@ -2238,3 +2238,50 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - manually test `POST /convert` with a real Spotify URL using `curl` or Postman
   - inspect whether the response shape proves the request-driven route is working
   - then decide whether `#11` is complete or whether one more cleanup pass is needed before moving to `#21`
+
+### 2026-04-17 14:28:02 CDT
+- User:
+  Said the recent guidance formatting was not matching expectations and asked Codex to review `example-codex.md` as the model for the desired teaching style.
+- Codex:
+  Read `example-codex.md` from the repo root and identified the preferred response pattern:
+  - plain-language first
+  - issue-focused sequencing
+  - lighter formatting with short paragraphs
+  - block-by-block teaching
+  - short “Why” explanations after each block
+  - small manual test plan at the end
+
+  Agreed to switch future implementation guidance to that style and reframe the current `#11` `/convert` coaching accordingly.
+
+### 2026-04-17 14:35:35 CDT
+- User:
+  Gave Codex full control to make the style-normalization changes happen for cross-machine consistency.
+- Codex:
+  Reworked `example-codex.md` from a pasted transcript into a reusable style guide that complements `AGENTS.md`.
+
+  The new `example-codex.md` now documents:
+  - its purpose as a tone/pacing reference rather than a policy file
+  - preferred tone:
+    - calm
+    - warm
+    - collaborative
+    - practical
+    - concept-first
+  - preferred teaching style:
+    - smallest useful slice first
+    - block-by-block explanations
+    - short “Why” explanations
+    - user implements while Codex guides
+    - manual verification before declaring progress
+  - preferred response structure:
+    - ground the step
+    - explain the immediate logic
+    - break it into blocks
+    - end with the next concrete move
+  - patterns to prefer and patterns to avoid
+  - a short example showing the intended voice and pacing
+  - a clean separation between:
+    - `AGENTS.md` for required repo workflow
+    - `example-codex.md` for style and delivery
+
+  This was done specifically to make future Codex sessions on the other machine more consistent and less dependent on inferring style from one pasted conversation.
