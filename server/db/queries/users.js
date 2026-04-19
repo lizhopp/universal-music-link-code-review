@@ -17,10 +17,16 @@ export async function getUserById(id){
     return user;
 }
 
-export async function getUserByEmailAndPassword(email,password){
-    const text = 'select * from users where email = $1';
+export async function getUserByEmail(email){
+    const text = `select * from users where email = $1`;
 
-    const { rows:[user] } = await db.query(text,[email]);
+    const { rows:[user] } = await db.query(text, [email]);
+
+    return user ?? null;
+}
+
+export async function getUserByEmailAndPassword(email,password){
+    const user = await getUserByEmail(email);
     if(!user) return null;
 
     const isValid = await bcrypt.compare(password, user.password_hash);
