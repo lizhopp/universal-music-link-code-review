@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 
+const TOKEN_KEY = 'uml.auth.token';
+
 
 function App() {
-  const [healthMessage, setHealthMessage] = useState('Checking API...');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
+  const [authToken, setAuthToken] = useState(()=> localStorage.getItem(TOKEN_KEY) ?? '');
+  const [authUser, setAuthUser] = useState(null);
+  const [authMessage, setAuthMessage] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   async function checkHealth() {
     setLoading(true);
     setError('');
