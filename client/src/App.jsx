@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/$/, "");
 
@@ -28,10 +28,11 @@ function App() {
     password: "",
   });
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setAuthError("");
     setAuthMessage("");
+    setSubmitting(true);
 
     const path = mode === "register" ? "register" : "login";
 
@@ -47,6 +48,7 @@ function App() {
       const data = await readJsonResponse(response);
 
       setAuthToken(data.token);
+      localStorage.setItem(TOKEN_KEY, data.token);
       setAuthUser(data.user);
       setAuthMessage(data.message);
       setForm({
@@ -59,6 +61,40 @@ function App() {
       setSubmitting(false);
     }
   }
+
+  function handleLogout() {
+    setAuthToken("");
+    setAuthUser(null);
+    setAuthMessage("");
+    setAuthError("");
+    localStorage.removeItem(TOKEN_KEY);
+  }
+
+  useEffect(() => {
+    if (!authToken) {
+      setAuthUser(null);
+      return;
+    }
+
+    async function restoreSession() {
+      try {
+        const response = await fetch(`${API_BASE}/users/me`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        const data = await readJsonResponse(response);
+        setAuthUser(data.user);
+      } catch (error) {
+        setAuthToken("");
+        setAuthUser(null);
+        localStorage.removeItem(TOKEN_KEY);
+      }
+    }
+
+    restoreSession();
+  }, [authToken]);
 
   return (
     <main>
@@ -73,6 +109,14 @@ function App() {
           Login
         </button>
       </div>
+      {authMessage ? <p>{authMessage}</p> : null}
+      {authError ? <p style={{ color: "crimson" }}>{authError}</p> : null}
+      {authUser ? <p>Signed in as {authUser.email}</p> : null}
+      {authUser ? (
+        <button type="button" onClick={handleLogout}>
+          Log Out
+        </button>
+      ) : null}
       <form onSubmit={handleSubmit}>
         <label>
           Email
