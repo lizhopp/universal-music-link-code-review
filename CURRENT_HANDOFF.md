@@ -15,33 +15,37 @@ Do not use this file as a transcript. Historical conversation details belong in 
 
 ## Active Focus
 
-- Finish the frontend auth vertical slice in `client/src/App.jsx`
+- Continue the frontend auth submit/feedback slice in `client/src/App.jsx`
 
 ## Current Status
 
-- Backend auth contract is in place and manually tested:
+- Backend auth contract is in place and re-verified:
   - `POST /users/register`
   - `POST /users/login`
-- Protected auth proof is in place and manually tested:
-  - `GET /users/me`
-- Frontend auth state has been introduced in `client/src/App.jsx`
-- Work is still in the frontend teaching/build phase; JSX form rendering and request wiring are not finished yet
-
-## Next Exact Step
-
-- In `client/src/App.jsx`, render the auth form UI using the state that has already been added:
+- Protected auth proof is in place and re-verified:
+  - unauthenticated `GET /users/me` returns `401` with `{"message":"Authentication required."}`
+  - authenticated `GET /users/me` returns the serialized user object
+- Frontend auth work in `client/src/App.jsx` has progressed to:
+  - auth-related state
   - register/login mode toggle
   - controlled email input
   - controlled password input
-- While doing that, explain:
-  - what `value` does
-  - what `onChange` does
-  - how controlled inputs map typed text into React state
+  - `readJsonResponse`
+  - a partially wired `handleSubmit`
+- Work is paused in the frontend teaching/build phase at the feedback-rendering step
+
+## Next Exact Step
+
+- In `client/src/App.jsx`, add the feedback lines directly above the `<form>`:
+  - `{authMessage ? <p>{authMessage}</p> : null}`
+  - `{authError ? <p style={{ color: "crimson" }}>{authError}</p> : null}`
+- Immediately after that, sanity-check the current submit wiring:
+  - `handleSubmit` should be `async`
+  - `setSubmitting(true)` should run at the start of submission
+  - the current `fetch` + `readJsonResponse` flow should then be manually tested in the browser
 
 ## After That
 
-- Add `readJsonResponse`
-- Add `handleSubmit` for both `/users/register` and `/users/login`
 - Save token to `localStorage`
 - Add session restore via `GET /users/me`
 - Add logout behavior
@@ -65,7 +69,8 @@ Do not use this file as a transcript. Historical conversation details belong in 
 - duplicate email handling works
 - `POST /users/login` works
 - invalid credential path works
-- `GET /users/me` works with auth middleware
+- `GET /users/me` returns `401` correctly when no token is sent
+- `GET /users/me` returns the serialized user object when a valid bearer token is sent
 
 ## Open Questions
 

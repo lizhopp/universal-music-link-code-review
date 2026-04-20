@@ -2676,3 +2676,51 @@ From now on, entries include detailed assistant outputs (not only summaries).
   Teaching note:
   - project config improves baseline IntelliSense
   - JSX event suggestions are still strongest when the handler is connected contextually or documented with JSDoc types
+
+### 2026-04-20 00:45:58 CDT
+- User:
+  Asked to review the current history/handoff, decide where to resume, continue the auth vertical slice in guided mode, and then update the handoff before switching to another machine.
+- Codex:
+  Re-reviewed `CHAT_HISTORY.md`, `CURRENT_HANDOFF.md`, and the live code in `client/src/App.jsx`, `server/api/users.js`, and `server/db/queries/users.js`.
+
+  Backend findings and verification:
+  - found that `requireBody(['email', 'password'])` had been mounted at the `/users` router level, which could block `GET /users/me`
+  - guided the user to move `requireBody(...)` onto only:
+    - `POST /users/register`
+    - `POST /users/login`
+  - when the user tried to restart the server, inspected startup failure and found PostgreSQL was down:
+    - app error: `ECONNREFUSED 127.0.0.1:5432`
+    - `brew services list` showed `postgresql@18` in `error`
+    - `/opt/homebrew/var/postgresql@18/postmaster.pid` pointed to PID `864`, which was a Logitech process rather than Postgres
+  - guided the user to clear the stale Postgres lock-file situation and restart the local database/service
+  - after the server came back up, verified auth behavior with local requests:
+    - `GET /health` -> `200 OK`
+    - unauthenticated `GET /users/me` -> `401 {"message":"Authentication required."}`
+    - authenticated `GET /users/me` -> serialized user object with `id`, `email`, and `created_at`
+
+  Frontend teaching/build progress in `client/src/App.jsx`:
+  - added/confirmed auth state:
+    - `authToken`
+    - `authUser`
+    - `authMessage`
+    - `authError`
+    - `submitting`
+    - `mode`
+    - `form` with `email` and `password`
+  - removed the old health-check-only render path
+  - rendered the register/login mode toggle
+  - added controlled email and password inputs with explanations of:
+    - `value`
+    - `onChange`
+    - why `...form` preserves the other field in state
+  - added `readJsonResponse`
+  - replaced the console-only submit stub with a partially wired auth-request `handleSubmit`
+
+  Pause point / exact handoff update recorded:
+  - the next line the user planned to add was the frontend feedback render:
+    - `{authMessage ? <p>{authMessage}</p> : null}`
+    - `{authError ? <p style={{ color: "crimson" }}>{authError}</p> : null}`
+  - updated `CURRENT_HANDOFF.md` to reflect:
+    - backend auth is re-verified
+    - frontend form/toggle/helper work is already in place
+    - the next exact step is adding those feedback lines, then sanity-checking/finalizing the current submit wiring before browser auth testing
