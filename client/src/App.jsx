@@ -86,7 +86,7 @@ function App() {
 
         const data = await readJsonResponse(response);
         setAuthUser(data.user);
-      } catch (error) {
+      } catch {
         setAuthToken("");
         setAuthUser(null);
         localStorage.removeItem(TOKEN_KEY);
