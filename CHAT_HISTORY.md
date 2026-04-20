@@ -2401,3 +2401,96 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - catalog requests use an Apple Music developer token
   - user-specific tokens are for personalized `/me` requests and are not needed for the first catalog-search/client-setup slice
   - because the env vars do not exist yet, the next guided step should begin with Apple Music env/config plus a small backend helper rather than jumping directly into search logic
+
+### 2026-04-19 21:46:05 CDT
+- User:
+  Returned to the auth work and asked to keep going with the register/login vertical slice, then clarified that no code should be edited directly and requested review of `AGENTS.md`, `example-codex.md`, and `CHAT_HISTORY.md`.
+- Codex:
+  Switched to read-only guidance and re-reviewed the repo guidance files before continuing.
+
+  Key repo-policy reminders taken from `AGENTS.md` and followed from that point:
+  - default to guided implementation instead of direct edits
+  - inspect first, then reduce work to the smallest meaningful vertical slice
+  - verify behavior before treating an issue as complete
+  - keep `CHAT_HISTORY.md` updated with meaningful decisions and outcomes
+
+  Auth/codebase review findings shared with the user:
+  - backend auth routes already existed in `server/api/users.js`
+  - password hashing and comparison already existed in `server/db/queries/users.js`
+  - JWT creation already existed in `server/utils/jwt.js`
+  - auth middleware already existed in `server/middleware/getUserFromToken.js`
+  - frontend auth did not yet exist; `client/src/App.jsx` was still only a health-check UI
+
+  Compared current code to the local issue audit in `2026-04-08-partially-done-issues-todo.md` and concluded:
+  - `#40` Create login endpoint: close to done, pending verification/contract cleanup
+  - `#41` Hash passwords with bcrypt: effectively done in code
+  - `#42` Generate JWT tokens: effectively done in code
+  - `#39` Create register endpoint: still partial
+  - `#43` Implement auth middleware: still partial
+
+  Guided backend slice completed by the user:
+  - added an email lookup helper in `server/db/queries/users.js`
+  - updated register flow in `server/api/users.js` to:
+    - normalize incoming email
+    - intentionally handle duplicate email
+    - return structured JSON instead of a raw token string
+    - serialize a safe user payload rather than returning the full DB row
+  - updated login flow in `server/api/users.js` to return the same JSON contract as register
+
+  User then reported that register/login testing worked successfully.
+
+  Guided auth-middleware proof slice completed next:
+  - explained the purpose of a protected `GET /users/me` route
+  - user implemented `/users/me` in `server/api/users.js`
+  - user tested `/users/me` successfully
+
+  Frontend handoff state at the end of the session:
+  - focus moved to `client/src/App.jsx`
+  - user requested more detailed frontend explanations because React/UI work feels daunting
+  - guidance style was adjusted to break each line down more explicitly
+
+  Frontend implementation progress reached this point:
+  - explained that `const TOKEN_KEY = 'uml.auth.token';` is only a `localStorage` key label, not the JWT itself
+  - guided the user to add auth-related state in `client/src/App.jsx`:
+    - `authToken`
+    - `authUser`
+    - `authMessage`
+    - `authError`
+    - `submitting`
+    - `mode`
+    - `form` with `email` and `password`
+  - deliberately stopped before wiring JSX inputs or fetch handlers so the user could absorb the state model first
+
+  Recommended next step for the next machine/session:
+  - continue in `client/src/App.jsx`
+  - next teaching block should be the actual JSX form:
+    - register/login mode toggle
+    - controlled email/password inputs
+    - explanation of `value` and `onChange`
+  - after the form renders, wire:
+    - `handleSubmit` for `/users/register` and `/users/login`
+    - token persistence via `localStorage`
+    - session restoration via `GET /users/me`
+
+### 2026-04-19 21:46:05 CDT
+- User:
+  Asked whether there was a better way to handle handoffs between machines, then requested that setup be created.
+- Codex:
+  Recommended separating the long-term transcript from the active engineering handoff:
+  - keep `CHAT_HISTORY.md` for transcript/history
+  - add `CURRENT_HANDOFF.md` for the live working state
+
+  Created `CURRENT_HANDOFF.md` at the repo root with:
+  - current active focus
+  - current status
+  - next exact step
+  - after-that checklist
+  - files in play
+  - verified behavior
+  - open questions
+  - a small rule for when the file should be updated
+
+  Initial handoff state recorded there:
+  - backend register/login and `/users/me` are complete and manually tested
+  - frontend auth work is paused in `client/src/App.jsx`
+  - the next exact step is rendering the register/login JSX form and explaining controlled inputs in detail
