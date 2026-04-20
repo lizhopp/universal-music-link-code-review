@@ -8,5 +8,5 @@
     "rgba(115, 218, 202, 0.18)"
   ],
   "indentRainbow.errorColor": "rgba(244, 63, 94, 0.32)",
-  "indentRainbow.indicatorStyle": "light"
+  "indentRainbow.indicatorStyle": "classic"
 }

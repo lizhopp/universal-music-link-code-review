@@ -2402,6 +2402,169 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - user-specific tokens are for personalized `/me` requests and are not needed for the first catalog-search/client-setup slice
   - because the env vars do not exist yet, the next guided step should begin with Apple Music env/config plus a small backend helper rather than jumping directly into search logic
 
+### 2026-04-17 16:04:43 CDT
+- User:
+  Said Apple developer account approval was still pending, so they wanted to pivot away from Apple Music work. Explained that backend register/login already work and that the next need is the frontend auth side.
+- Codex:
+  Pivoted from issue `#21` to the authentication frontend track and inspected both the live auth issues and the current frontend/backend shape before recommending the next slice.
+
+  What was checked:
+  - issue `#45` Build register page
+  - issue `#46` Build login page
+  - issue `#47` Connect frontend register flow
+  - issue `#48` Connect frontend login flow
+  - `client/src` file inventory
+  - current `client/src/App.jsx`, `App.css`, `main.jsx`, and `index.css`
+  - `client/package.json`
+  - backend auth route contract in `server/api/users.js`
+  - auth docs section in `README.md`
+
+  Findings:
+  - the frontend is still essentially the starter app and currently only does an API health check
+  - there is no current register/login UI
+  - the client does not currently include `react-router`
+  - backend auth endpoints expect `{ email, password }`
+  - backend auth endpoints return a raw JWT string, not a JSON object
+
+  Recommended next slice:
+  - start with `#45` (Build register page)
+  - keep the first version narrow by building the register form directly in `App.jsx`
+  - defer routing and the login page until the first register page slice is working
+  - after that, the next dependent issue would be `#47` (Connect frontend register flow)
+
+### 2026-04-17 16:12:54 CDT
+- User:
+  Asked Codex not to spend tokens on CSS guidance yet and to save styling discussion for the end.
+- Codex:
+  Adjusted the frontend coaching approach accordingly:
+  - focus first on React structure, state, form behavior, and API flow
+  - defer CSS/layout/styling guidance until the user explicitly wants to return to it
+
+### 2026-04-19 14:10:08 CDT
+- User:
+  Reported that a recent VS Code settings sync used the wrong machine as the source of truth and asked Codex to inspect what changed on this machine recently and possibly restore it to the pre-sync state.
+- Codex:
+  Inspected repo guidance first, then checked recent local VS Code user-state files on macOS without modifying anything.
+
+  What was checked:
+  - repo git status
+  - `~/Library/Application Support/Code/User/settings.json`
+  - `~/Library/Application Support/Code/User/sync/settings/20260419T135808.json`
+  - `~/Library/Application Support/Code/User/sync/globalState/20260419T135808.json`
+  - `~/.vscode/extensions`
+  - `~/Library/Application Support/Code/User/keybindings.json`
+  - repo `.vscode/`
+
+  Findings:
+  - the repo itself did not show fresh sync-related config changes; only `CHAT_HISTORY.md` was modified in git status
+  - the strongest sync damage appears concentrated in VS Code user `settings.json`
+  - current live `settings.json` was modified at `2026-04-19 14:06:31 CDT`
+  - a sync snapshot exists from `2026-04-19 13:58:08 CDT`
+  - current `settings.json` contains only 2 top-level keys
+  - the sync snapshot contains 31 top-level keys
+  - many editor/theme/formatter/extension settings that appear to be the user’s real setup are missing from the current live file
+  - `workbench.colorTheme` changed from `Tokyo Night` in the sync snapshot to `Tokyo Night Storm` in the current file
+  - `chat.instructionsFilesLocations` also changed and currently includes a different machine/temp-path prefix, which further suggests cross-machine overwrite
+  - no user `keybindings.json` exists
+  - no evidence was found that today’s sync changed installed extensions; the recent extension directory timestamps were from Apr 17-18, not Apr 19
+
+  Recommended restore approach:
+  - safest first restore is only `settings.json`
+  - make a backup of the current live file
+  - replace it with the parsed contents of the `13:58:08` sync snapshot
+  - leave extension folders and global state alone unless further problems remain afterward
+
+### 2026-04-19 14:13:08 CDT
+- User:
+  Approved the safe restore of VS Code user settings from the pre-sync snapshot.
+- Codex:
+  Performed the restore outside the repo after first creating a backup of the current live VS Code user settings file.
+
+  Actions taken:
+  - backed up:
+    - `/Users/darthlyrical/Library/Application Support/Code/User/settings.json`
+  - backup created at:
+    - `/Users/darthlyrical/Library/Application Support/Code/User/settings.backup-before-restore-20260419T141258.json`
+  - restored live settings from:
+    - `/Users/darthlyrical/Library/Application Support/Code/User/sync/settings/20260419T135808.json`
+
+  Verification:
+  - restored `settings.json` now contains `31` top-level keys
+  - `workbench.colorTheme` is back to `Tokyo Night`
+
+  Left untouched:
+  - installed extensions
+  - global state
+  - repo files other than this chat-history entry
+
+### 2026-04-19 14:15:31 CDT
+- User:
+  Asked why Indent Rainbow did not seem to be showing on `server/api/convert.js`.
+- Codex:
+  Inspected the file and repo workspace settings without changing application code.
+
+  What was checked:
+  - `server/api/convert.js`
+  - `cat -te server/api/convert.js` to verify indentation characters
+  - `.vscode/settings.json`
+
+  Findings:
+  - `server/api/convert.js` uses space indentation, not tabs
+  - indentation levels are present and structurally normal
+  - repo workspace settings currently set `indentRainbow.indicatorStyle` to `"light"`
+  - the configured colors use low opacity values such as `0.18` and `0.20`
+  - this makes Indent Rainbow appear as very subtle guide lines on dark themes rather than bold, obvious rainbow blocks
+
+  Guidance given:
+  - the extension likely is working, but the current workspace config makes it easy to miss
+  - suggested increasing opacity and/or changing `indentRainbow.indicatorStyle` to a stronger mode if the user wants the effect to be more visible
+
+### 2026-04-19 14:18:00 CDT
+- User:
+  Asked how to make the current machine the source of truth for VS Code Settings Sync across other machines.
+- Codex:
+  Verified the current official VS Code Settings Sync flow from the Visual Studio Code documentation before answering.
+
+  Key points shared:
+  - safest path is to clear existing cloud sync data first, then re-enable sync from this machine
+  - after re-enabling on this machine, other machines should connect to the same account and choose `Replace Local` instead of `Merge`
+  - if later conflict prompts appear, use `Accept Local` on this machine when intentionally pushing this machine’s version, and `Accept Remote` on other machines when pulling from cloud
+  - noted important limitations: machine-scoped settings are not synced by default, remote-window extensions are not synced, and Stable and Insiders use different sync services by default
+
+  References used:
+  - https://code.visualstudio.com/docs/configure/settings-sync
+  - https://code.visualstudio.com/docs/configure/profiles
+
+### 2026-04-19 14:19:29 CDT
+- User:
+  Asked what happens with existing cloud changes when trying to make the current machine the source of truth for VS Code Settings Sync.
+- Codex:
+  Clarified the official conflict and backup behavior for cloud-synced VS Code settings.
+
+  Guidance given:
+  - if old cloud data exists and the goal is a clean reset, turn sync off and clear all cloud data first
+  - if sync is already on and a conflict appears, `Accept Local` from this machine overwrites the cloud copy
+  - on other machines, `Accept Remote` or `Replace Local` pulls the cloud copy down over their local setup
+  - VS Code keeps remote backups and retains the latest 20 versions of each synced resource, which can be viewed via `Settings Sync: Show Synced Data`
+
+  Reference used:
+  - https://code.visualstudio.com/docs/configure/settings-sync
+
+### 2026-04-19 14:21:30 CDT
+- User:
+  Shared a VS Code account-menu screenshot showing `Backup and Sync Settings...` and `Turn off Cloud Changes...` and implicitly asked how that relates to settings sync.
+- Codex:
+  Clarified that `Cloud Changes` is a separate VS Code feature from `Settings Sync`.
+
+  Guidance given:
+  - `Backup and Sync Settings...` is the entry related to VS Code Settings Sync
+  - `Turn off Cloud Changes...` refers to the feature used to temporarily store pending edits when continuing work between environments such as web and desktop
+  - for making this machine the source of truth for settings, the user should work through Settings Sync commands and ignore `Cloud Changes` unless they specifically want to disable that separate feature
+
+  References used:
+  - https://code.visualstudio.com/docs/configure/settings-sync
+  - https://code.visualstudio.com/docs/sourcecontrol/github
+
 ### 2026-04-19 21:46:05 CDT
 - User:
   Returned to the auth work and asked to keep going with the register/login vertical slice, then clarified that no code should be edited directly and requested review of `AGENTS.md`, `example-codex.md`, and `CHAT_HISTORY.md`.
