@@ -16,9 +16,9 @@ function serializedUser(user) {
 }
 
 
-router.use(requireBody(['email', 'password']));
 
-router.post('/register', async (req, res) => {
+
+router.post('/register', requireBody(['email', 'password']), async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
     const password = req.body.password;
 
@@ -45,7 +45,7 @@ router.post('/register', async (req, res) => {
     });
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', requireBody(['email', 'password']), async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
     const password = req.body.password;
 

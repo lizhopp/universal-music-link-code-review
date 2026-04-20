@@ -2657,3 +2657,22 @@ From now on, entries include detailed assistant outputs (not only summaries).
   - backend register/login and `/users/me` are complete and manually tested
   - frontend auth work is paused in `client/src/App.jsx`
   - the next exact step is rendering the register/login JSX form and explaining controlled inputs in detail
+
+### 2026-04-19 23:43:39 CDT
+- User:
+  Reported that IntelliSense in `client/src/App.jsx` was not recommending common methods such as `event.preventDefault()` or string helpers like `toLowerCase()`, then approved adding the recommended frontend config fix.
+- Codex:
+  Inspected the frontend setup and confirmed:
+  - `client/` had `package.json`, `vite.config.js`, and React type packages installed
+  - there was no `client/jsconfig.json`, which can weaken JavaScript/JSX IntelliSense in VS Code
+  - `client/src/App.jsx` did not yet wire the submit handler to `<form onSubmit={handleSubmit}>`, so the editor had limited context for inferring the event type
+
+  Added `client/jsconfig.json` to define the frontend JavaScript project for VS Code with:
+  - modern module settings for Vite
+  - DOM libraries for browser method/property suggestions
+  - React JSX support
+  - `vite/client` types for `import.meta.env`
+
+  Teaching note:
+  - project config improves baseline IntelliSense
+  - JSX event suggestions are still strongest when the handler is connected contextually or documented with JSDoc types
