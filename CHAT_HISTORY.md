@@ -2724,3 +2724,69 @@ From now on, entries include detailed assistant outputs (not only summaries).
     - backend auth is re-verified
     - frontend form/toggle/helper work is already in place
     - the next exact step is adding those feedback lines, then sanity-checking/finalizing the current submit wiring before browser auth testing
+
+### 2026-04-20 14:41:53 CDT
+- User:
+  Asked why the restore-session `catch` did not use the `error` variable, then requested a live project-board review to determine what can now be marked complete.
+- Codex:
+  Reviewed the current auth/frontend implementation against the live GitHub issue states and project-board columns.
+
+  Codebase status confirmed locally:
+  - `server/api/users.js`
+    - `POST /users/register` works with duplicate-email handling and safe JSON response
+    - `POST /users/login` works with consistent JSON response
+    - `GET /users/me` returns authenticated user data
+  - `server/middleware/getUserFromToken.js`
+    - bearer token is parsed and verified
+    - `req.user` is populated for protected requests
+  - `client/src/App.jsx`
+    - register and login form share one mode-toggle auth screen
+    - success/error feedback renders
+    - JWT persists to `localStorage`
+    - session restore runs from stored token
+    - logout clears state and persisted token
+
+  Explanation given for the unused error variable:
+  - restore-session failure currently treats all failure modes the same
+  - therefore `catch { ... }` is cleaner than `catch (error) { ... }`
+  - the user updated the file accordingly
+
+  Live board / issue review findings:
+  - confirmed already `Done` on board and `CLOSED` as issues:
+    - `#10` Write initial README and project description
+    - `#39` Create register endpoint
+    - `#40` Create login endpoint
+    - `#47` Connect frontend register flow
+    - `#48` Connect frontend login flow
+    - `#62` Add logout functionality
+  - confirmed still open / not ready to mark complete without scope clarification:
+    - `#45` Build register page
+    - `#46` Build login page
+      - current code uses one shared mode-toggle auth screen in `client/src/App.jsx`
+      - these can be closed only if that shared screen is accepted as satisfying both tickets
+  - confirmed should remain incomplete:
+    - `#43` Implement auth middleware
+      - middleware behavior works, but auth-header documentation is still thin
+    - `#61` Implement protected routes
+      - no route-level protection exists yet
+
+  Repo tracking docs updated:
+  - `CURRENT_HANDOFF.md`
+    - replaced the old “mid-build auth form” handoff with the verified auth-complete state
+    - recorded the board-sync findings and the remaining scope question around `#45` / `#46`
+
+### 2026-04-20 20:20:38 CDT
+- User:
+  Asked how to select multiple matching variables in the editor.
+- Codex:
+  Answered as a VS Code/Cursor-on-macOS shortcut question.
+
+  Taught the main multi-cursor selection shortcuts:
+  - `Cmd + D` selects the next matching occurrence of the current word/selection
+  - `Cmd + Shift + L` selects all matching occurrences at once
+  - `Option + Click` adds an extra cursor manually
+  - `Cmd + F`, then `Option + Enter` selects all current find matches
+  - noted that `F2` is better when the goal is a true variable rename instead of multi-cursor editing
+
+  Reference:
+  - VS Code docs: https://code.visualstudio.com/docs/editor/codebasics#_multiple-selections-multicursor

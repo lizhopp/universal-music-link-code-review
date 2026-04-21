@@ -15,7 +15,7 @@ Do not use this file as a transcript. Historical conversation details belong in 
 
 ## Active Focus
 
-- Continue the frontend auth submit/feedback slice in `client/src/App.jsx`
+- Reconcile the project board with the now-working auth vertical slice and choose the next dependency-safe frontend issue
 
 ## Current Status
 
@@ -25,42 +25,48 @@ Do not use this file as a transcript. Historical conversation details belong in 
 - Protected auth proof is in place and re-verified:
   - unauthenticated `GET /users/me` returns `401` with `{"message":"Authentication required."}`
   - authenticated `GET /users/me` returns the serialized user object
-- Frontend auth work in `client/src/App.jsx` has progressed to:
-  - auth-related state
-  - register/login mode toggle
-  - controlled email input
-  - controlled password input
-  - `readJsonResponse`
-  - a partially wired `handleSubmit`
-- Work is paused in the frontend teaching/build phase at the feedback-rendering step
+- Frontend auth work in `client/src/App.jsx` has been manually verified end-to-end:
+  - register flow works
+  - login flow works
+  - success/error feedback renders
+  - token persists to `localStorage`
+  - session restores through `GET /users/me`
+  - logout clears session state and survives refresh
+- Live board / issue review findings:
+  - `#10`, `#39`, `#40`, `#47`, `#48`, and `#62` are already `Done` on the board and `CLOSED`
+  - `#45` Build register page and `#46` Build login page are still open/`Ready`
+  - `#43` Implement auth middleware is still `In Progress`
+  - `#61` Implement protected routes is still `Ready`
 
 ## Next Exact Step
 
-- In `client/src/App.jsx`, add the feedback lines directly above the `<form>`:
-  - `{authMessage ? <p>{authMessage}</p> : null}`
-  - `{authError ? <p style={{ color: "crimson" }}>{authError}</p> : null}`
-- Immediately after that, sanity-check the current submit wiring:
-  - `handleSubmit` should be `async`
-  - `setSubmitting(true)` should run at the start of submission
-  - the current `fetch` + `readJsonResponse` flow should then be manually tested in the browser
+- Decide whether the current shared auth screen in `client/src/App.jsx` satisfies:
+  - `#45` Build register page
+  - `#46` Build login page
+- If the answer is yes, those two issues can be moved to `Done` / closed.
+- If the answer is no, the next dependency-aware issue is:
+  - `#7` Setup React Router
+  - then split auth into real routed pages
+  - then tackle `#61` protected routes
 
 ## After That
 
-- Save token to `localStorage`
-- Add session restore via `GET /users/me`
-- Add logout behavior
-- Manually verify browser flow:
-  - register
-  - login
-  - refresh persistence
-  - logout
-  - failed login
+- If auth-screen scope is accepted:
+  - review `#43` and decide whether auth-header documentation is enough to close it
+  - start `#7` Setup React Router
+  - then implement route-level auth gating for `#61`
+- If auth-screen scope is not accepted:
+  - do `#7` first
+  - convert the shared auth UI into distinct register/login pages
+  - retest before moving `#45` and `#46`
 
 ## Files In Play
 
 - `client/src/App.jsx`
 - `server/api/users.js`
-- `server/db/queries/users.js`
+- `server/middleware/getUserFromToken.js`
+- `README.md`
+- `CURRENT_HANDOFF.md`
 - `CHAT_HISTORY.md`
 
 ## Verified
@@ -71,10 +77,16 @@ Do not use this file as a transcript. Historical conversation details belong in 
 - invalid credential path works
 - `GET /users/me` returns `401` correctly when no token is sent
 - `GET /users/me` returns the serialized user object when a valid bearer token is sent
+- frontend register form submits successfully
+- frontend login form submits successfully
+- auth success/error messages render in the UI
+- auth token persists in `localStorage`
+- session restore works after refresh
+- logout clears auth state and persisted token
 
 ## Open Questions
 
-- none currently
+- Does the current shared mode-toggle auth screen count as satisfying `#45` and `#46`, or do those issues require distinct routed pages?
 
 ## Handoff Update Rule
 

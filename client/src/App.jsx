@@ -1,3 +1,4 @@
+import { Routes, Route, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/$/, "");
@@ -14,7 +15,7 @@ async function readJsonResponse(response) {
   return data;
 }
 
-function App() {
+function AuthScreen({ mode }) {
   const [authToken, setAuthToken] = useState(
     () => localStorage.getItem(TOKEN_KEY) ?? "",
   );
@@ -22,7 +23,6 @@ function App() {
   const [authMessage, setAuthMessage] = useState("");
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [mode, setMode] = useState("register");
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -101,13 +101,9 @@ function App() {
       <h1>{mode === "register" ? "Create an account" : "Log in"}</h1>
 
       <div>
-        <button type="button" onClick={() => setMode("register")}>
-          Register
-        </button>
+        <Link to="/register">Register</Link>
 
-        <button type="button" onClick={() => setMode("login")}>
-          Login
-        </button>
+        <Link to="/login">Login</Link>
       </div>
       {authMessage ? <p>{authMessage}</p> : null}
       {authError ? <p style={{ color: "crimson" }}>{authError}</p> : null}
@@ -150,4 +146,21 @@ function App() {
   );
 }
 
-export default App;
+function NotFoundPage() {
+  return (
+    <main>
+      <h1>Page not found</h1>
+    </main>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<AuthScreen />} />
+      <Route path="/register" element={<AuthScreen mode="register" />}/>
+      <Route path="/login" element={<AuthScreen mode="login" />}/>
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+}
