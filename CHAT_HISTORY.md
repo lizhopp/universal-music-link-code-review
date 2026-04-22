@@ -7,6 +7,312 @@ From now on, entries include detailed assistant outputs (not only summaries).
 
 ## Entries
 
+### 2026-04-22 17:24:58 CDT
+- User:
+  still happening. It happens when I spam the refresh button
+- Codex:
+  Re-checked the current `client/src/App.jsx` after the `cache: "no-store"` change and narrowed the remaining auth bug to interrupted refresh requests.
+
+  Current code state confirmed:
+  - `cache: "no-store"` is now present on the `GET /users/me` fetch in `restoreSession`
+  - `client/src/main.jsx` still renders the app inside React `StrictMode`
+  - the `restoreSession` catch block still clears the token for any rejected fetch
+
+  Main explanation:
+  - if the problem now shows up only when the browser refresh button is spammed, the remaining failure is likely not cache-related anymore
+  - rapid refreshes can interrupt or abort in-flight `/users/me` requests
+  - the current catch block treats those interrupted requests exactly like an invalid token
+  - that means a canceled request during page reload can remove a still-valid token from `localStorage`
+
+  Teaching point:
+  - there are three different failure classes now:
+    - real auth failure: backend returns `401`
+    - cache revalidation: previously produced `304`
+    - interrupted request: browser reload cancels the request
+  - only the first one should clear saved auth state automatically
+
+  Guided next fix:
+  - keep `cache: "no-store"`
+  - make the restore flow ignore aborted/interrupted requests
+  - only clear the token when the backend explicitly says the auth is invalid, for example `401`
+  - optional hardening: use `AbortController` with effect cleanup so the app distinguishes intentional cancellation from a real auth error
+
+### 2026-04-22 17:14:42 CDT
+- User:
+  looks like they were all 304
+- Codex:
+  Confirmed that the repeated-refresh auth problem is caused by cached `304 Not Modified` responses, not by short JWT expiry.
+
+  Files reviewed:
+  - `client/src/App.jsx`
+  - `server/utils/jwt.js`
+  - `server/api/users.js`
+  - `server/app.js`
+
+  Main explanation:
+  - `server/utils/jwt.js` signs tokens with `expiresIn: '7d'`, so 5 or 6 refreshes should not invalidate the token
+  - the current `restoreSession` flow in `client/src/App.jsx` fetches `GET /users/me`
+  - `readJsonResponse` treats any non-2xx response as an error
+  - `304 Not Modified` is therefore being treated like a failed auth request
+  - the `restoreSession` catch block then clears:
+    - `authToken`
+    - `authUser`
+    - `localStorage`
+  - that makes a cache revalidation response look like "the token became invalid"
+
+  Teaching point:
+  - `304` is a caching/revalidation response, not an authentication failure
+  - auth/session restore requests are usually better treated as `no-store`
+  - auth state should only be cleared automatically on a real auth failure such as `401`
+
+  Guided next fix:
+  - add `cache: "no-store"` to the frontend `GET /users/me` fetch
+  - improve the restore logic so only a real `401` clears the saved token
+  - optionally add backend `Cache-Control: no-store` hardening on `/users/me`
+
+### 2026-04-22 17:02:08 CDT
+- User:
+  great all test work. token became invalid after 5 0r 6 refresh
+- Codex:
+  Reviewed the current client auth restore logic and backend JWT config to explain why the token appeared to become invalid after repeated refreshes.
+
+  Files checked:
+  - `client/src/App.jsx`
+  - `server/utils/jwt.js`
+  - `server/middleware/getUserFromToken.js`
+
+  Main finding:
+  - the token is **not** configured to expire after 5 or 6 refreshes
+  - `server/utils/jwt.js` signs tokens with `expiresIn: '7d'`
+  - the more likely cause is the client restore logic in `client/src/App.jsx`
+  - during session restore, the `catch` block clears auth state and removes the saved token for **any** failure:
+    - invalid token
+    - backend temporary outage
+    - network error
+    - non-JSON response
+    - unexpected server error
+
+  Teaching point:
+  - "token became invalid" and "the client deleted the token after one failed `/users/me` request" are not the same thing
+  - in the current code, any failed restore request is treated like an invalid token
+  - that means the apparent trigger is not the number of refreshes; it is the first refresh where `/users/me` fails for any reason
+
+  Suggested debugging method:
+  - open the browser Network tab
+  - refresh until the failure happens
+  - inspect the `/users/me` request
+  - check the real status code and response body before changing auth logic
+
+  Reference links:
+  - `https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch`
+  - `https://jwt.io/introduction`
+
+### 2026-04-22 17:02:08 CDT
+- User:
+  ok testing for DashboardPage works
+- Codex:
+  Re-checked `client/src/App.jsx` after the dashboard test passed and updated the handoff to reflect the new checkpoint.
+
+  Current frontend state confirmed:
+  - `ProtectedRoute` now exists
+  - `DashboardPage` now exists
+  - `/dashboard` is mounted behind the guard
+  - `handleLogout` is owned by `App`
+  - the earlier blank screen was resolved by defining `DashboardPage`
+
+  Main remaining gap:
+  - the `/` route is still half-configured
+  - it renders `AuthScreen` without a `mode`
+  - it also bypasses the cleaner route-based flow now that `/register`, `/login`, and `/dashboard` exist
+
+  Guided next step:
+  - stop rendering `AuthScreen` at `/`
+  - use `Navigate` to make `/` a redirect route instead
+  - send logged-out users to `/register`
+  - send users with a token to `/dashboard`, letting `ProtectedRoute` handle session restore and redirect behavior
+
+  Why this is the right next fix:
+  - `AuthScreen` is now meant to be URL-driven by `/register` vs `/login`
+  - keeping a third auth entry at `/` makes the flow harder to reason about
+  - the protected-route slice is clearer once `/` becomes a simple traffic-director route
+
+### 2026-04-22 16:51:10 CDT
+- User:
+  the app is blank
+- Codex:
+  Reviewed the current `client/src/App.jsx` and checked the frontend build to isolate the blank-screen cause without editing app code.
+
+  Files and commands checked:
+  - `client/src/App.jsx`
+  - `npm run build` from `client/`
+
+  Main finding:
+  - the blank app is most likely caused by a runtime render crash, not a compile failure
+  - `client/src/App.jsx` now references `DashboardPage` inside the `/dashboard` route, but no `DashboardPage` component is defined anywhere in the file
+  - because JSX evaluates component references while building the route tree, an undefined `DashboardPage` can crash the whole app render and produce a blank screen even if the browser is not currently on `/dashboard`
+  - `npm run build` still succeeds, which is a useful reminder that bundling success does not guarantee runtime safety
+
+  Guided next fix:
+  - define a small `DashboardPage` component before `NotFoundPage`
+  - keep it simple first:
+    - heading
+    - signed-in user email
+    - logout button wired to `onLogout`
+  - then recheck whether the app renders before making additional route changes
+
+  Reference links:
+  - `https://react.dev/learn/your-first-component`
+  - `https://reactrouter.com/home`
+
+### 2026-04-22 15:27:17 CDT
+- User:
+  i dont understand. can you review my current app.jsx and then guide me from what's missing? also, there are some errors that im getting confused with
+- Codex:
+  Reviewed the current `client/src/App.jsx` and checked frontend tooling before giving guided fixes without editing the app code.
+
+  Files and commands checked:
+  - `client/src/App.jsx`
+  - `client/src/main.jsx`
+  - `npm run build` from `client/`
+  - `npm run lint` from `client/` (did not return useful output in the sandbox during this pass)
+
+  Main review findings:
+  - production build still succeeds, so the file is not blocked by a syntax/compiler error
+  - the biggest real bug is a half-finished refactor:
+    - `handleLogout` was moved into `App`
+    - `AuthScreen` still references `handleLogout` directly
+    - this leaves `AuthScreen` with an out-of-scope handler and can trigger a browser/runtime error when the signed-in UI renders
+  - the protected-route feature itself is still unfinished:
+    - no `Navigate` import
+    - no `ProtectedRoute` component
+    - no protected page like `/dashboard`
+  - `authToken` is still listed in `AuthScreen` props even though it is not used there right now
+
+  Teaching points clarified:
+  - a successful build does not guarantee there is no runtime bug
+  - moving a function into a parent component means children can no longer see it unless it is passed down as a prop
+  - “there is an error” and “the feature is still incomplete” are two different problems:
+    - current error: missing callback wiring after refactor
+    - missing feature: the route guard/dashboard slice for `#61`
+
+  Guided next steps explained:
+  - first repair the callback flow:
+    - rename the child-facing prop to something like `onLogout`
+    - pass `handleLogout` from `App` into `AuthScreen`
+    - change the button to `onClick={onLogout}`
+  - then continue the protected-route slice:
+    - add `Navigate`
+    - add `ProtectedRoute`
+    - add a tiny `DashboardPage`
+    - mount `/dashboard`
+
+  Reference links:
+  - `https://react.dev/learn/passing-props-to-a-component`
+  - `https://reactrouter.com/home`
+
+### 2026-04-22 15:01:05 CDT
+- User:
+  walk me through it
+- Codex:
+  Gave a guided implementation walkthrough for the next `#61` protected-routes slice without editing app code.
+
+  Files reviewed before teaching:
+  - `client/src/App.jsx`
+  - `server/app.js`
+  - `server/api/users.js`
+  - `server/api/preferences.js`
+  - `server/api/conversions.js`
+
+  Main teaching points:
+  - the current frontend already has:
+    - lifted `authToken`
+    - lifted `authUser`
+    - session restore through `GET /users/me`
+  - a protected frontend route needs three practical auth states, not just two:
+    - no token: user is definitely logged out
+    - token exists but user is not restored yet: session check is still in progress
+    - user exists: authenticated
+  - if `ProtectedRoute` redirects immediately whenever `authUser` is `null`, a refresh on `/dashboard` can bounce to `/login` before the `/users/me` request finishes
+  - the smallest safe guard for this repo is:
+    - show a temporary loading/checking state while `authToken` exists but `authUser` is not restored yet
+    - redirect to `/login` only when there is no authenticated user after that check
+  - logout ownership should move into `App` because `App` owns the shared auth state and both auth pages and future protected pages need to clear it
+  - a small protected page like `/dashboard` is the right first slice before wiring real feature pages
+
+  Important architecture distinction:
+  - frontend route guards protect navigation and UI flow
+  - they do **not** secure backend data by themselves
+  - in the current repo, `server/api/preferences.js` and `server/api/conversions.js` are mounted after `getUserFromToken`, but they do not yet reject unauthenticated requests
+  - that means those endpoints are not truly protected until the route handlers themselves require `req.user`
+
+  Suggested manual verification for this slice:
+  - logged-out visit to `/dashboard` should redirect to `/login`
+  - logged-in visit to `/dashboard` should render the protected page
+  - refresh on `/dashboard` should stay on the protected route after the session restore completes
+  - logout from `/dashboard` should clear auth state and fall back to the login route
+
+  Reference links:
+  - `https://reactrouter.com/home`
+  - `https://react.dev/learn/conditional-rendering`
+
+### 2026-04-22 14:52:27 CDT
+- User:
+  review the mds and continue where we left off
+- Codex:
+  Reviewed the repo markdown handoff/docs and re-checked the current frontend auth state before making any code changes.
+
+  Files checked:
+  - `CURRENT_HANDOFF.md`
+  - `CHAT_HISTORY.md`
+  - `STUDY_PLAN.md`
+  - `example-codex.md`
+  - `client/src/App.jsx`
+  - `client/src/main.jsx`
+  - `client/package.json`
+
+  Current code findings:
+  - `CURRENT_HANDOFF.md` is still directionally correct:
+    - the next unfinished slice is still `#61` protected routes in `client/src/App.jsx`
+  - `client/src/App.jsx` already owns:
+    - `authToken`
+    - `authUser`
+    - session restore through `GET /users/me`
+  - current frontend routes are still:
+    - `/`
+    - `/register`
+    - `/login`
+    - `*`
+  - there is still no:
+    - `ProtectedRoute` component
+    - protected page component
+    - protected `/dashboard` route
+  - logout still lives inside `AuthScreen`, so moving that ownership into `App` is still part of the next refactor
+
+  Live GitHub checks on 2026-04-22:
+  - `gh auth status`
+  - `gh issue view 61 --repo Darthlyrical/universal-music-link --json number,title,state,body,url`
+  - `gh issue view 7 --repo Darthlyrical/universal-music-link --json number,title,state,body,url`
+  - `gh issue view 45 --repo Darthlyrical/universal-music-link --json number,title,state,url`
+  - `gh issue view 46 --repo Darthlyrical/universal-music-link --json number,title,state,url`
+  - `gh project field-list 1 --owner @me`
+  - `gh project item-list 1 --owner @me --limit 200 --format json`
+
+  Live status reconciliation:
+  - `#43` Implement auth middleware is `Done` on the board
+  - `#45` Build register page is `Closed` and `Done`
+  - `#46` Build login page is `Closed` and `Done`
+  - `#61` Implement protected routes is `Open` and `Ready`
+  - `#7` Setup React Router is still `Ready`
+
+  Practical continuation point:
+  - keep the issue narrow and continue the first protected-route slice in `client/src/App.jsx`
+  - next implementation target remains:
+    - add `Navigate`
+    - create a small protected page component
+    - create a `ProtectedRoute` guard component
+    - move logout ownership into `App`
+    - mount one protected route such as `/dashboard`
+
 ### 2026-04-21 20:10:22 CDT
 - User:
   update the handoff

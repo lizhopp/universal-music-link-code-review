@@ -96,6 +96,7 @@ Repo tie-ins:
 - Reading auth headers safely
 - Attaching user context to the request
 - Protected route flow
+- Frontend guards vs backend authorization enforcement
 - Session restore on the client
 - Token persistence tradeoffs
 - Logout behavior and auth state clearing
@@ -104,6 +105,8 @@ Repo tie-ins:
 - `server/middleware/getUserFromToken.js`
 - frontend token storage
 - `GET /users/me` as auth proof
+- `authToken` + pending `authUser` is a real "session still restoring" state on frontend refresh
+- frontend route guards improve UI flow, but backend handlers like `/preferences` and `/conversions` still need explicit `req.user` checks to become truly private
 
 ## Phase 5: React And Frontend Architecture
 
@@ -114,6 +117,12 @@ Repo tie-ins:
 - Form submission flow
 - Loading, success, and error state
 - Lifting state up
+- Passing parent-owned callback functions into child components
+- Component scope vs prop scope during refactors
+- Runtime render failures from referencing undefined JSX components
+- Distinguishing true auth failure from generic session-restore failure
+- HTTP cache revalidation (`304`) vs real auth failure (`401`)
+- Aborted fetch during navigation/reload vs real auth failure
 - Route-based UI organization
 - 404 fallback routes
 - Protected frontend routes and redirects
@@ -123,6 +132,11 @@ Repo tie-ins:
 - login flow
 - `BrowserRouter`
 - route definitions in `client/src/App.jsx`
+- when `handleLogout` lives in `App`, child components like `AuthScreen` must receive it through props instead of referencing a local name that no longer exists
+- a route element like `<DashboardPage />` must point to a real in-scope component or the app can go blank at runtime even when `npm run build` passes
+- the `restoreSession` catch block currently clears the token for any `/users/me` failure, so a temporary request problem can look like "token became invalid"
+- `304 Not Modified` from `/users/me` is a cache response, not an invalid token; auth restore requests should avoid cache or handle cache responses separately from `401`
+- after cache is disabled, rapid reloads can still abort `/users/me`; aborted fetches should be ignored or canceled cleanly, not treated like invalid credentials
 
 ## Phase 6: Databases And Data Modeling
 
