@@ -91,6 +91,7 @@
 - Keep `README.md` aligned with the actual repo state and near-term plan.
 - Keep schema and ERD docs aligned with the current database design work.
 - When updating issue-related work, mention relevant issue numbers in `CHAT_HISTORY.md`.
+- When a meaningful new concept, pattern, or architectural idea is taught, log it in `CHAT_HISTORY.md` and update `STUDY_PLAN.md` so the study roadmap stays current.
 
 ## Project Board Workflow
 - The user wants Codex to actively use the GitHub project board and issues as part of normal project guidance.

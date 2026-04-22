@@ -7,6 +7,127 @@ From now on, entries include detailed assistant outputs (not only summaries).
 
 ## Entries
 
+### 2026-04-21 20:10:22 CDT
+- User:
+  update the handoff
+- Codex:
+  Updated the local session docs to reflect the current protected-routes work instead of the earlier issue-reconciliation phase.
+
+  Updated `CURRENT_HANDOFF.md` to capture:
+  - active focus is now `#61` Implement protected routes
+  - `client/src/App.jsx` has already lifted:
+    - `authToken`
+    - `authUser`
+    - session-restore `useEffect`
+  - `AuthScreen` now receives shared auth state through props
+  - `#43` auth middleware cleanup is considered sufficiently complete to move on
+  - the next exact implementation step is:
+    - add `Navigate`
+    - create a protected page component
+    - create a `ProtectedRoute` component
+    - move logout ownership into `App`
+    - mount one protected route such as `/dashboard`
+
+  Also updated the handoff's verified/open-question sections so the next session can pick up directly from the current `App.jsx` state without redoing the earlier auth-ticket reconciliation.
+
+### 2026-04-21 18:14:33 CDT
+- User:
+  review the mds and lets continue where I left off on my other machine
+- Codex:
+  Reviewed the repo markdown files to reconstruct the active handoff and current state across machines.
+
+  Files checked:
+  - `CURRENT_HANDOFF.md`
+  - `CHAT_HISTORY.md`
+  - `AGENTS.md`
+  - `AGENT_SENTRY_CHECKLIST.md`
+  - `ERD.md`
+  - `README.md`
+  - `example-codex.md`
+
+  Local repo findings:
+  - Actual repo root is `universal-music-link/`
+  - Local branch is `main`
+  - Local working tree was clean at review time
+  - Recent commits showed auth and routing work had continued beyond the older handoff:
+    - `5dd7ec4` `routing optomized for current components`
+    - `2b948f5` `vertical slice working for Register and Login`
+
+  Code reality found during inspection:
+  - `client/src/main.jsx` already wraps the app in `BrowserRouter`
+  - `client/src/App.jsx` already defines routes for:
+    - `/register`
+    - `/login`
+    - `*` fallback
+  - `server/api/users.js` exposes:
+    - `POST /users/register`
+    - `POST /users/login`
+    - `GET /users/me`
+  - `server/middleware/getUserFromToken.js` reads bearer tokens, verifies JWTs, and hydrates `req.user`
+
+  Main conclusion:
+  - The earlier handoff had gone stale. It still treated React Router setup as the next task, but router wiring and routed auth pages were already present in code on this machine.
+
+### 2026-04-21 18:14:33 CDT
+- User:
+  1 and 2
+- Codex:
+  Updated the local handoff docs and reviewed the live GitHub issue state against the current implementation.
+
+  Local documentation updates:
+  - Updated `CURRENT_HANDOFF.md` to reflect that:
+    - frontend routing is already installed and wired
+    - `/register` and `/login` are real routes
+    - the next dependency-safe issue is now `#61` protected routes, not initial router setup
+    - board-column status could not be re-read from this machine without refreshed GitHub project scope
+
+  Live GitHub checks performed:
+  - `gh issue view 7 --repo Darthlyrical/universal-music-link --json number,title,state,body,url`
+  - `gh issue view 43 --repo Darthlyrical/universal-music-link --json number,title,state,body,url`
+  - `gh issue view 45 --repo Darthlyrical/universal-music-link --json number,title,state,body,url`
+  - `gh issue view 46 --repo Darthlyrical/universal-music-link --json number,title,state,body,url`
+  - `gh issue view 61 --repo Darthlyrical/universal-music-link --json number,title,state,body,url`
+
+  Live issue-state findings on 2026-04-21:
+  - `#7` Setup React Router: `OPEN`
+  - `#43` Implement auth middleware: `OPEN`
+  - `#45` Build register page: `OPEN`
+  - `#46` Build login page: `OPEN`
+  - `#61` Implement protected routes: `OPEN`
+
+  Code-vs-issue assessment:
+  - `#45` appears satisfied:
+    - routed register page exists in `client/src/App.jsx`
+    - frontend registration flow, success/error states, token persistence, and restore behavior were already documented as verified
+  - `#46` appears satisfied for the same reason on the login route
+  - `#7` appears partially satisfied:
+    - `react-router-dom` installed
+    - `BrowserRouter` mounted
+    - `/register`, `/login`, and `*` fallback routes exist
+    - but the issue body also mentions a route map for landing, history, and settings pages, which are not present yet
+  - `#43` appears largely satisfied:
+    - middleware reads `Authorization: Bearer <token>`
+    - JWT is verified
+    - user is attached to `req.user`
+    - missing token is unauthenticated
+    - invalid token returns `401`
+    - `/users/me` demonstrates the protected flow
+    - remaining closure question is whether any explicit auth-header documentation is still expected
+  - `#61` is still not implemented:
+    - there is no protected frontend route or route guard yet
+
+  Project board access result:
+  - `gh project item-list 1 --owner Darthlyrical --limit 200` failed because the GitHub token on this machine is missing `read:project`
+  - GitHub indicated:
+
+    ```bash
+    gh auth refresh -s read:project
+    ```
+
+  Practical outcome:
+  - Issue states were reconciled live
+  - Project-column status could not be reconciled live from this machine until project scope is refreshed
+
 ## Backfilled Earlier Session Entries (Before Logging Started)
 
 ### Earlier in session (chronological, timestamps not captured)

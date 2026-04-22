@@ -15,11 +15,7 @@ async function readJsonResponse(response) {
   return data;
 }
 
-function AuthScreen({ mode }) {
-  const [authToken, setAuthToken] = useState(
-    () => localStorage.getItem(TOKEN_KEY) ?? "",
-  );
-  const [authUser, setAuthUser] = useState(null);
+function AuthScreen({ mode, authToken, setAuthToken, authUser, setAuthUser }) {
   const [authMessage, setAuthMessage] = useState("");
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -69,32 +65,6 @@ function AuthScreen({ mode }) {
     setAuthError("");
     localStorage.removeItem(TOKEN_KEY);
   }
-
-  useEffect(() => {
-    if (!authToken) {
-      setAuthUser(null);
-      return;
-    }
-
-    async function restoreSession() {
-      try {
-        const response = await fetch(`${API_BASE}/users/me`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        });
-
-        const data = await readJsonResponse(response);
-        setAuthUser(data.user);
-      } catch {
-        setAuthToken("");
-        setAuthUser(null);
-        localStorage.removeItem(TOKEN_KEY);
-      }
-    }
-
-    restoreSession();
-  }, [authToken]);
 
   return (
     <main>
@@ -155,11 +125,74 @@ function NotFoundPage() {
 }
 
 export default function App() {
+  const [authToken, setAuthToken] = useState(
+    () => localStorage.getItem(TOKEN_KEY) ?? "",
+  );
+  const [authUser, setAuthUser] = useState(null);
+
+  useEffect(() => {
+    if (!authToken) {
+      setAuthUser(null);
+      return;
+    }
+
+    async function restoreSession() {
+      try {
+        const response = await fetch(`${API_BASE}/users/me`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        const data = await readJsonResponse(response);
+        setAuthUser(data.user);
+      } catch {
+        setAuthToken("");
+        setAuthUser(null);
+        localStorage.removeItem(TOKEN_KEY);
+      }
+    }
+
+    restoreSession();
+  }, [authToken]);
+
   return (
     <Routes>
-      <Route path="/" element={<AuthScreen />} />
-      <Route path="/register" element={<AuthScreen mode="register" />}/>
-      <Route path="/login" element={<AuthScreen mode="login" />}/>
+      <Route
+        path="/"
+        element={
+          <AuthScreen
+            authToken={authToken}
+            setAuthToken={setAuthToken}
+            authUser={authUser}
+            setAuthUser={setAuthUser}
+          />
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <AuthScreen
+            mode="register"
+            authToken={authToken}
+            setAuthToken={setAuthToken}
+            authUser={authUser}
+            setAuthUser={setAuthUser}
+          />
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <AuthScreen
+            mode="login"
+            authToken={authToken}
+            setAuthToken={setAuthToken}
+            authUser={authUser}
+            setAuthUser={setAuthUser}
+          />
+        }
+      />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
