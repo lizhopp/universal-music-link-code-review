@@ -13,3 +13,7 @@ pnpm-debug.log*
 
 # macOS
 .DS_Store
+
+# Agent Logs
+
+CHAT-HISTORY.md

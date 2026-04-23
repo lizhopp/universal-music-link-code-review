@@ -250,6 +250,9 @@ Use this project to practice answers like:
 - Auth documentation cleanup
 - Database reasoning from the ERD
 - Conversion-pipeline thinking: detect, extract, fetch, normalize, match, return
+- Code-defense narration for the auth vertical slice
+- Explaining middleware order and request flow without reading line by line
+- Practicing clean tradeoff answers: what is implemented, what is partial, and what comes next
 
 ## Done Standard For Each Topic
 
@@ -407,6 +410,16 @@ Definition:
 Example:
 - Spotify and Apple Music are providers in this project.
 
+### Regular Expression (Regex)
+
+Definition:
+- A small text rule that tells JavaScript what to look for inside a string.
+- Think of it like a very specific search instruction.
+
+Example:
+- In `.replace(/\/$/, "")`, `/\/$/` means "find a slash, but only if it is the last character."
+- In `.replace(/^\/api/, "")`, `^` means "start of the text," so it means "find `/api` only if it is at the beginning."
+
 ### Request Body
 
 Definition:
@@ -440,6 +453,16 @@ Definition:
 Example:
 - `serializedUser(user)` returns `id`, `email`, and `created_at` instead of the full DB row.
 
+### String.replace()
+
+Definition:
+- A JavaScript string method that looks for some text and swaps it for different text.
+- If the replacement is `""`, that means "remove it."
+
+Example:
+- `"/api/".replace(/\/$/, "")` returns `"/api"` so later URL building does not create `"/api//users/login"`.
+- `"/api/users".replace(/^\/api/, "")` returns `"/users"` because the starting `/api` is removed.
+
 ### Source Of Truth
 
 Definition:
@@ -471,3 +494,27 @@ Definition:
 
 Example:
 - Testing `GET /users/me` with no token, bad token, and valid token.
+
+### Middleware Pipeline
+
+Definition:
+- The ordered set of middleware and route steps that a request passes through on the server.
+
+Example:
+- In `server/app.js`: CORS -> body parsing -> logging -> auth middleware -> routers -> error handling.
+
+### Session Restore
+
+Definition:
+- Rebuilding a logged-in user’s state after a page refresh by asking the server to verify stored credentials.
+
+Example:
+- `App.jsx` reads the saved token, calls `GET /users/me`, and restores `authUser` only if the token is still valid.
+
+### Tradeoff
+
+Definition:
+- A choice that improves one part of the system while accepting a cost somewhere else.
+
+Example:
+- Using `localStorage` for the JWT made the auth slice easier to build and demo, but it is not as secure as an `httpOnly` cookie approach.

@@ -2911,3 +2911,132 @@ From now on, entries include detailed assistant outputs (not only summaries).
 
   Reference:
   - VS Code docs: https://code.visualstudio.com/docs/editor/codebasics#_multiple-selections-multicursor
+
+### 2026-04-22 20:28:02 CDT
+- User:
+  Asked what line 6 in `client/src/App.jsx` is doing with `.replace(...)`, then asked for a more detailed study-style explanation with examples in-thread.
+- Codex:
+  Inspected `client/src/App.jsx` without editing the user’s working file and explained this line:
+  `const API_BASE = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/$/, "");`
+
+  Broke the logic into parts:
+  - `import.meta.env.VITE_API_URL` reads the frontend environment variable if it exists
+  - `?? "/api"` falls back to `"/api"` only when that env var is `null` or `undefined`
+  - `.replace(/\/$/, "")` removes one trailing slash from the end of the string
+
+  Explained the regex pieces in plain language:
+  - `/.../` marks a regular expression literal
+  - `\/` means a literal slash character
+  - `$` means "only if it is at the end of the string"
+
+  Worked through concrete examples:
+  - `"https://example.com/api/"` becomes `"https://example.com/api"`
+  - `"/api/"` becomes `"/api"`
+  - `"/api"` stays `"/api"`
+
+  Connected the concept back to the fetch call pattern so the user could see the purpose:
+  - without cleanup, `${API_BASE}/users/login` could become `"/api//users/login"`
+  - with cleanup, the URL stays consistently shaped
+
+  Added matching glossary entries to `STUDY_PLAN.md` for `Regular Expression (Regex)` and `String.replace()` so this concept is easier to revisit later.
+
+  References:
+  - MDN `String.prototype.replace()`: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
+  - MDN Regular expressions guide: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions
+
+### 2026-04-22 20:33:44 CDT
+- User:
+  Said that terms like "regex" do not mean anything yet and asked for a more understandable explanation.
+- Codex:
+  Switched to a beginner-first explanation instead of leading with terminology.
+
+  Reframed `.replace(/\/$/, "")` in plain language as:
+  - `.replace(...)` means "look for something in this text and change it"
+  - `/\/$/` means "look for a slash only if it is at the very end"
+  - `""` means "replace it with nothing," which is the same as removing it
+
+  Explained the intent before the vocabulary:
+  - the code is cleaning up the API base URL
+  - if the URL ends with `/`, remove that last slash
+  - this prevents later fetch URLs from accidentally containing `//`
+
+  Added simpler glossary wording in `STUDY_PLAN.md` so "Regular Expression (Regex)" and `String.replace()` are easier to revisit without assuming background knowledge.
+
+  References:
+  - MDN `String.prototype.replace()`: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
+  - MDN Regular expressions guide: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions
+
+### 2026-04-22 20:38:58 CDT
+- User:
+  Asked how the pattern in `client/src/App.jsx` compares to the one used in line 12 of `client/vite.config.js`.
+- Codex:
+  Compared the two `replace(...)` uses side by side without editing either code file.
+
+  Clarified the patterns in plain language:
+  - `App.jsx`: `.replace(/\/$/, "")` means "if the text ends with `/`, remove that last slash"
+  - `vite.config.js`: `.replace(/^\/api/, "")` means "if the text starts with `/api`, remove that beginning part"
+
+  Explained the symbol difference:
+  - `$` points to the end of the text
+  - `^` points to the start of the text
+
+  Connected each one to its job:
+  - `App.jsx` is cleaning the end of a base URL before building fetch paths
+  - `vite.config.js` is stripping the `/api` prefix from the start of proxied request paths before forwarding them to the backend target
+
+  Added beginner-friendly glossary examples in `STUDY_PLAN.md` to show both "start of text" and "end of text" matching.
+
+  References:
+  - MDN `String.prototype.replace()`: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
+  - MDN Regular expressions guide: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions
+
+### 2026-04-22 20:49:20 CDT
+- User:
+  Said they are preparing for a code defense tomorrow and asked for a repo-specific defense cheat sheet based on the current project files.
+- Codex:
+  Inspected the current auth and routing slice plus the config surface without editing the user’s application code.
+
+  Files reviewed for the defense-prep pass:
+  - `client/src/main.jsx`
+  - `client/src/App.jsx`
+  - `server/app.js`
+  - `server/api/users.js`
+  - `server/api/convert.js`
+  - `server/api/preferences.js`
+  - `server/middleware/getUserFromToken.js`
+  - `server/middleware/requireBody.js`
+  - `server/db/queries/users.js`
+  - `server/utils/jwt.js`
+  - `server/.env.example`
+
+  Delivered a new study artifact:
+  - `CODE_DEFENSE_CHEATSHEET.md`
+
+  Cheat-sheet focus:
+  - strongest defense narrative is the auth vertical slice
+  - one-minute request-flow explanation from React Router to JWT verification
+  - likely professor questions with model answers
+  - weak spots to admit cleanly instead of overclaiming
+  - demo order for tomorrow
+
+  Important defense concepts logged from this prep:
+  - shared auth state belongs high enough in the component tree to support multiple routes
+  - `/users/me` is stronger proof than trusting a token in local storage
+  - middleware is best explained as reusable request-pipeline logic
+  - serializers protect response shape and prevent leaking unnecessary fields
+  - a strong defense answer includes both the technical choice and the tradeoff
+
+  Honest risks called out in the cheat sheet:
+  - backend error responses are not fully consistent because some paths still return plain text
+  - backend automated tests are not set up yet
+  - token storage in `localStorage` is a simplicity tradeoff
+  - `preferences` and some conversion routes are still placeholders
+  - the conversion route is a Spotify-only orchestration slice, not a full matching engine
+
+  Also updated `STUDY_PLAN.md` so the defense-prep concepts are easier to revisit after tonight’s review session.
+
+  References:
+  - Express middleware guide: https://expressjs.com/en/guide/using-middleware.html
+  - React `useEffect`: https://react.dev/reference/react/useEffect
+  - MDN Authorization header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
+  - JWT introduction: https://jwt.io/introduction
