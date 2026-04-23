@@ -16,4 +16,5 @@ pnpm-debug.log*
 
 # Agent Logs
 
-CHAT-HISTORY.md
+CHAT_HISTORY.md
+CODE_DEFENSE_CHEATSHEET.md
