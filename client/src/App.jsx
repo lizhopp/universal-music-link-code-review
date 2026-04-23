@@ -177,7 +177,7 @@ export default function App() {
 
         if (response.status === 401) {
           setAuthToken("");
-          setAuthUser("");
+          setAuthUser(null);
           localStorage.removeItem(TOKEN_KEY);
           return;
         }
@@ -188,8 +188,8 @@ export default function App() {
 
         const data = await response.json();
         setAuthUser(data.user);
-      } catch(error){
-        if(error.name === "AbortError"){
+      } catch (error) {
+        if (error.name === "AbortError") {
           return;
         }
 
@@ -223,27 +223,33 @@ export default function App() {
       <Route
         path="/register"
         element={
-          <AuthScreen
-            mode="register"
-            authToken={authToken}
-            setAuthToken={setAuthToken}
-            authUser={authUser}
-            setAuthUser={setAuthUser}
-            onLogout={handleLogout}
-          />
+          authToken ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <AuthScreen
+              mode="register"
+              setAuthToken={setAuthToken}
+              authUser={authUser}
+              setAuthUser={setAuthUser}
+              onLogout={handleLogout}
+            />
+          )
         }
       />
       <Route
         path="/login"
         element={
-          <AuthScreen
-            mode="login"
-            authToken={authToken}
-            setAuthToken={setAuthToken}
-            authUser={authUser}
-            setAuthUser={setAuthUser}
-            onLogout={handleLogout}
-          />
+          authToken ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <AuthScreen
+              mode="login"
+              setAuthToken={setAuthToken}
+              authUser={authUser}
+              setAuthUser={setAuthUser}
+              onLogout={handleLogout}
+            />
+          )
         }
       />
       <Route path="*" element={<NotFoundPage />} />

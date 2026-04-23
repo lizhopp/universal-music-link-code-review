@@ -15,7 +15,7 @@ Do not use this file as a transcript. Historical conversation details belong in 
 
 ## Active Focus
 
-- Implement `#61` protected routes on the frontend using lifted auth state in `client/src/App.jsx`
+- After completing `#61`, the next recommended frontend slice is `#57` Build settings page
 
 ## Current Status
 
@@ -33,10 +33,11 @@ Do not use this file as a transcript. Historical conversation details belong in 
   - session restores through `GET /users/me`
   - logout clears session state and survives refresh
 - repeated refreshes exposed one remaining auth-restore bug:
-    - `GET /users/me` previously returned `304 Not Modified` until `cache: "no-store"` was added
-    - after that cache fix, spam-refreshing still reproduces token loss
-    - the current client restore logic still treats any rejected fetch as an auth failure
-    - aborted/interrupted refresh requests can therefore remove a valid token
+  - `GET /users/me` previously returned `304 Not Modified` until `cache: "no-store"` was added
+  - after that cache fix, spam-refreshing reproduced token loss until restore logic was hardened further
+  - `AbortController` + `signal` are now wired into the restore fetch
+  - aborted/interrupted refresh requests are now ignored instead of being treated like invalid auth
+  - only explicit `401` handling clears the saved token
 - Frontend routing has already been added locally:
   - `react-router-dom` is installed in `client/package.json`
   - `BrowserRouter` wraps the app in `client/src/main.jsx`
@@ -47,18 +48,22 @@ Do not use this file as a transcript. Historical conversation details belong in 
   - session restore via `GET /users/me` now runs in `App`
   - `AuthScreen` now receives shared auth state/setters as props
   - `handleLogout` now lives in `App`
-- First protected-route slice is now partially in place locally:
+- First protected-route slice is now functionally in place locally:
   - `Navigate` is imported in `client/src/App.jsx`
   - `ProtectedRoute` exists
   - `DashboardPage` exists
   - `/dashboard` is mounted behind `ProtectedRoute`
   - the earlier blank-screen crash was caused by referencing `DashboardPage` before defining it
+  - authenticated users are redirected away from `/register` and `/login`
 - Live issue and board review on 2026-04-22 found:
   - `#7` Setup React Router is `READY` on the project board
   - `#43` Implement auth middleware is `DONE` on the project board
   - `#45` Build register page is `CLOSED` and `DONE`
   - `#46` Build login page is `CLOSED` and `DONE`
-  - `#61` Implement protected routes is `OPEN` and `READY`
+  - `#61` Implement protected routes is `CLOSED` and `DONE`
+  - `#52` Build history page is `OPEN` and `READY`
+  - `#57` Build settings page is `OPEN` and `READY`
+  - `#60` Add navigation bar is `OPEN` and `READY`
 - Auth middleware cleanup for `#43` was reviewed and tightened:
   - comments were clarified around headers vs request body
   - bearer-token/header reasoning was added to `STUDY_PLAN.md`
@@ -69,12 +74,11 @@ Do not use this file as a transcript. Historical conversation details belong in 
 
 ## Next Exact Step
 
-- Harden auth restore in `client/src/App.jsx`:
-  - keep `cache: "no-store"` on `GET /users/me`
-  - do not treat aborted/interrupted refresh requests as invalid auth
-  - only clear the saved token on a real auth failure such as `401`
-  - consider using `AbortController` + effect cleanup so canceled requests are ignored instead of treated like logout events
-  - then re-verify repeated refreshes on `/dashboard`
+- Start `#57` Build settings page as the next dependency-safe slice:
+  - reuse the existing protected-route pattern
+  - create a small protected settings page component and route
+  - keep this ticket page-shell only
+  - leave the dropdown/backend wiring to follow-up issues `#58` and `#59`
 
 ## After That
 
@@ -85,8 +89,7 @@ Do not use this file as a transcript. Historical conversation details belong in 
   - refresh on the protected route restores the session correctly
 - repeated refreshes do not remove a valid token because of a cached `304` response
 - repeated refreshes do not remove a valid token because of aborted/canceled in-flight restore requests
-- decide whether to redirect authenticated users away from `/login` and `/register`
-- if the protected-route slice verifies cleanly, move `#61` to `Done`
+- decide whether to do `#60` Add navigation bar immediately after `#57`, or wait until there are more protected pages to navigate between
 - decide whether `#7` should stay open for the remaining non-auth pages called out in the issue body
 
 ## Files In Play
@@ -124,16 +127,19 @@ Do not use this file as a transcript. Historical conversation details belong in 
 - `DashboardPage` exists in `client/src/App.jsx`
 - the blank-screen crash was resolved by defining `DashboardPage`
 - current auth restore logic still over-clears the token when `/users/me` returns cached `304 Not Modified`
-- current auth restore logic still over-clears the token when `/users/me` is aborted/interrupted during rapid refreshes
+- current restore flow is hardened with `cache: "no-store"` and abort handling
+- authenticated users are redirected away from `/register` and `/login`
+- the unused `authToken` prop has been removed from the `AuthScreen` route elements
+- `#61` has been verified locally and is now aligned live as closed/done
 
 ## Open Questions
 
 - Should `#7` be considered complete now that router wiring, auth routes, and a 404 route exist, or does the issue still require additional non-auth pages?
 - Should `/` stay a redirect-only route for now, or eventually become a true landing page?
-- Should authenticated users be redirected away from `/login` and `/register` once the protected route exists?
 - Should `#62` remain treated as done once logout ownership finishes moving into `App` for the protected-route refactor?
 - Should cache prevention live only in the frontend fetch for now, or also be added to the backend `/users/me` response headers as hardening?
 - Should the restore effect use `AbortController`, an `isActive` flag, or both for the safest request-cancel handling?
+- Should `#60` be done after `#57`, or after both settings and history pages exist?
 
 ## Handoff Update Rule
 

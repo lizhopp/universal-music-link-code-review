@@ -7,6 +7,101 @@ From now on, entries include detailed assistant outputs (not only summaries).
 
 ## Entries
 
+### 2026-04-22 19:52:16 CDT
+- User:
+  all passed
+- Codex:
+  Confirmed the protected-route slice as complete based on the verified local behavior and then re-synced the live GitHub state.
+
+  Local code state checked:
+  - `client/src/App.jsx`
+  - protected `/dashboard` route exists
+  - auth restore is hardened with:
+    - `cache: "no-store"`
+    - `AbortController`
+    - `401`-only token clearing
+  - authenticated users are redirected away from `/register` and `/login`
+
+  Live GitHub state checked on 2026-04-22:
+  - `gh issue view 61 --repo Darthlyrical/universal-music-link --json number,title,state,url`
+  - `gh project item-list 1 --owner @me --limit 200 --format json`
+  - `gh project field-list 1 --owner @me --format json`
+
+  Live status result:
+  - `#61` is `CLOSED`
+  - project item `#61` is `Done`
+
+  Recommended next frontend ticket:
+  - `#57` Build settings page
+
+  Why `#57` is the best next step:
+  - it reuses the protected-route work that was just verified
+  - it keeps scope smaller than `#52` history page
+  - it is a better dependency order than `#60` navigation bar, because one more real protected destination should exist before adding more nav structure
+
+### 2026-04-22 19:52:16 CDT
+- User:
+  ok do that
+- Codex:
+  Re-checked the current `client/src/App.jsx` and found that the requested cleanup was already present in the code.
+
+  Current state confirmed:
+  - the unused `authToken` prop is already removed from the `AuthScreen` route elements
+  - `npm run build` had already been passing on the current frontend state
+
+  Practical outcome:
+  - no code edit was needed in `client/src/App.jsx`
+  - updated the handoff so the next step is now manual verification of:
+    - logged-out `/register`
+    - logged-out `/login`
+    - logged-in redirects from `/register` and `/login`
+    - repeated refreshes on `/dashboard`
+  - if those checks pass, `#61` is the next issue to consider moving to `Done`
+
+### 2026-04-22 19:46:02 CDT
+- User:
+  ok thats been updated
+- Codex:
+  Re-checked the current `client/src/App.jsx` and verified the frontend still builds after the latest auth-route cleanup.
+
+  Current state confirmed:
+  - the `401` branch now resets `authUser` to `null`
+  - `/register` redirects authenticated users to `/dashboard`
+  - `/login` redirects authenticated users to `/dashboard`
+  - `npm run build` still succeeds from `client/`
+
+  Main review note:
+  - the remaining code cleanup is small
+  - `AuthScreen` no longer needs the `authToken` prop passed in from the route elements because it does not use that value
+
+  Practical next step recommended:
+  - remove the unused `authToken` prop from the `AuthScreen` route elements
+  - manually verify logged-out auth pages, logged-in auth-page redirects, and repeated refreshes on `/dashboard`
+  - if those checks pass, treat `#61` as ready to move to `Done`
+
+### 2026-04-22 19:39:00 CDT
+- User:
+  lets keep it less complicated. Check the app.jsx now and lets keep moving
+- Codex:
+  Re-checked the current `client/src/App.jsx` after the auth-restore changes and verified the frontend still builds.
+
+  Current state confirmed:
+  - `cache: "no-store"` is present on the restore fetch
+  - `AbortController` and `signal` are now used in the restore effect
+  - aborted requests are ignored via the `AbortError` branch
+  - only the explicit `401` branch clears the saved token
+  - `npm run build` still succeeds from `client/`
+
+  Main review note:
+  - the remaining logic cleanup in `App.jsx` is small:
+    - the `401` branch currently uses `setAuthUser("")`
+    - that should be `setAuthUser(null)` so the auth-user state keeps one consistent "logged out" shape
+
+  Practical next step recommended:
+  - keep the current restore flow as-is otherwise
+  - clean up that `null` vs empty-string state mismatch
+  - then redirect authenticated users away from `/register` and `/login` using `Navigate` so the auth flow stays route-driven without adding extra abstraction
+
 ### 2026-04-22 17:24:58 CDT
 - User:
   still happening. It happens when I spam the refresh button
