@@ -214,12 +214,14 @@ Repo tie-ins:
 - Writing handoffs for future sessions
 - Tracking decisions in project history
 - Reviewing code against “definition of done”
+- Merging a finished feature branch into `main` safely after fetching the latest remote state
 
 Repo tie-ins:
 - issue-driven workflow
 - handoff updates
 - board reconciliation
 - acceptance-criteria-based reviews
+- `git status --short --branch`, `git fetch origin`, `git checkout main`, `git pull --rebase origin main`, `git merge <feature-branch>`, then `git push origin main`
 
 ## Phase 11: System Design Foundations
 

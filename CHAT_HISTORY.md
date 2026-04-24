@@ -3312,3 +3312,31 @@ From now on, entries include detailed assistant outputs (not only summaries).
 
   Reference:
   - VS Code docs: https://code.visualstudio.com/docs/editor/codebasics#_multiple-selections-multicursor
+
+### 2026-04-23 23:22:41 CDT
+- User:
+  Said they passed their code defense and asked how to merge the app-routing branch into `main`.
+- Codex:
+  Checked the real git state before giving instructions.
+
+  Verified local branch state:
+  - current branch is `feat/app-routing-work`
+  - working tree is clean
+  - `git fetch origin` was run to refresh remote state
+  - `main` and `feat/app-routing-work` have diverged:
+    - commits only on `main`: `5083902`, `3fc9cc4`, `5d3cebe`
+    - commits only on `feat/app-routing-work`: `cb4cdc5`, `e1a374c`
+
+  Gave the safest local merge sequence:
+  - `git checkout main`
+  - `git pull --rebase origin main`
+  - `git merge feat/app-routing-work`
+  - resolve conflicts if any, then `git add ...` and `git commit`
+  - `git push origin main`
+
+  Also clarified:
+  - the actual branch name in this repo is `feat/app-routing-work`, not just `app-routing-work`
+  - because `main` has moved, a merge commit is expected unless the user chooses a rebase workflow instead
+
+  Reference:
+  - Git branch management: https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
