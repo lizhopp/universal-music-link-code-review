@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 
@@ -6,6 +6,22 @@ import { useState, useEffect } from "react";
 const API_BASE = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/$/, "");
 
 const TOKEN_KEY = "uml.auth.token";
+
+function ProtectedRoute({ authToken, authUser, children }) {
+  if (authToken && !authUser) {
+    return (
+      <main>
+        <p>Checking session...</p>
+      </main>
+    );
+  }
+
+  if (!authUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
 
 async function readJsonResponse(response) {
   const text = await response.text();
@@ -17,7 +33,7 @@ async function readJsonResponse(response) {
   return data;
 }
 
-function AuthScreen({ mode, authToken, setAuthToken, authUser, setAuthUser }) {
+function AuthScreen({ mode, setAuthToken, authUser, setAuthUser, onLogout }) {
   const [authMessage, setAuthMessage] = useState("");
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -60,14 +76,6 @@ function AuthScreen({ mode, authToken, setAuthToken, authUser, setAuthUser }) {
     }
   }
 
-  function handleLogout() {
-    setAuthToken("");
-    setAuthUser(null);
-    setAuthMessage("");
-    setAuthError("");
-    localStorage.removeItem(TOKEN_KEY);
-  }
-
   return (
     <main>
       <h1>{mode === "register" ? "Create an account" : "Log in"}</h1>
@@ -81,7 +89,7 @@ function AuthScreen({ mode, authToken, setAuthToken, authUser, setAuthUser }) {
       {authError ? <p style={{ color: "crimson" }}>{authError}</p> : null}
       {authUser ? <p>Signed in as {authUser.email}</p> : null}
       {authUser ? (
-        <button type="button" onClick={handleLogout}>
+        <button type="button" onClick={onLogout}>
           Log Out
         </button>
       ) : null}
@@ -118,6 +126,18 @@ function AuthScreen({ mode, authToken, setAuthToken, authUser, setAuthUser }) {
   );
 }
 
+function DashboardPage({ authUser, onLogout }) {
+  return (
+    <main>
+      <h1>Dashboard</h1>
+      {authUser ? <p>Signed in as {authUser.email}</p> : null}
+      <button type="button" onClick={onLogout}>
+        Log Out
+      </button>
+    </main>
+  );
+}
+
 function NotFoundPage() {
   return (
     <main>
@@ -132,11 +152,19 @@ export default function App() {
   );
   const [authUser, setAuthUser] = useState(null);
 
+  function handleLogout() {
+    setAuthToken("");
+    setAuthUser(null);
+    localStorage.removeItem(TOKEN_KEY);
+  }
+
   useEffect(() => {
     if (!authToken) {
       setAuthUser(null);
       return;
     }
+
+    const controller = new AbortController();
 
     async function restoreSession() {
       try {
@@ -144,18 +172,38 @@ export default function App() {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
+
+          cache: "no-store",
+          signal: controller.signal,
         });
 
-        const data = await readJsonResponse(response);
+        if (response.status === 401) {
+          setAuthToken("");
+          setAuthUser(null);
+          localStorage.removeItem(TOKEN_KEY);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Session restore failed: ${response.status}`);
+        }
+
+        const data = await response.json();
         setAuthUser(data.user);
-      } catch {
-        setAuthToken("");
-        setAuthUser(null);
-        localStorage.removeItem(TOKEN_KEY);
+      } catch (error) {
+        if (error.name === "AbortError") {
+          return;
+        }
+
+        console.log(error);
       }
     }
 
     restoreSession();
+
+    return () => {
+      controller.abort();
+    };
   }, [authToken]);
 
   return (
@@ -163,36 +211,47 @@ export default function App() {
       <Route
         path="/"
         element={
-          <AuthScreen
-            authToken={authToken}
-            setAuthToken={setAuthToken}
-            authUser={authUser}
-            setAuthUser={setAuthUser}
-          />
+          <Navigate to={authToken ? "/dashboard" : "/register"} replace />
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute authToken={authToken} authUser={authUser}>
+            <DashboardPage authUser={authUser} onLogout={handleLogout} />
+          </ProtectedRoute>
         }
       />
       <Route
         path="/register"
         element={
-          <AuthScreen
-            mode="register"
-            authToken={authToken}
-            setAuthToken={setAuthToken}
-            authUser={authUser}
-            setAuthUser={setAuthUser}
-          />
+          authToken ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <AuthScreen
+              mode="register"
+              setAuthToken={setAuthToken}
+              authUser={authUser}
+              setAuthUser={setAuthUser}
+              onLogout={handleLogout}
+            />
+          )
         }
       />
       <Route
         path="/login"
         element={
-          <AuthScreen
-            mode="login"
-            authToken={authToken}
-            setAuthToken={setAuthToken}
-            authUser={authUser}
-            setAuthUser={setAuthUser}
-          />
+          authToken ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <AuthScreen
+              mode="login"
+              setAuthToken={setAuthToken}
+              authUser={authUser}
+              setAuthUser={setAuthUser}
+              onLogout={handleLogout}
+            />
+          )
         }
       />
       <Route path="*" element={<NotFoundPage />} />
