@@ -55,16 +55,25 @@ function scoreYouTubeCandidate(result, track) {
     const title = result.snippet?.title?.toLowerCase() ?? "";
     const channelTitle = result.snippet?.channelTitle?.toLowerCase() ?? "";
     const trackTitle = track.title?.toLowerCase() ?? "";
+    const baseTrackTitle = trackTitle
+        .replace(/\s[-–—]\s+(live|acoustic|remaster(?:ed)?|version).*$/i, "")
+        .trim();
     const artistNames = track.artistNames?.map((artist) => artist.toLowerCase()) ?? [];
     const matchedArtists = artistNames.filter(
         (artist) => title.includes(artist) || channelTitle.includes(artist)
     );
     const titleHasArtist = artistNames.some((artist) => title.includes(artist));
     const channelHasArtist = artistNames.some((artist) => channelTitle.includes(artist));
+    const titleHasExactTrack = title.includes(trackTitle);
+    const titleHasBaseTrack =
+        baseTrackTitle.length > 0 &&
+        baseTrackTitle !== trackTitle &&
+        title.includes(baseTrackTitle);
 
     let score = 0;
 
-    if (title.includes(trackTitle)) score += 5;
+    if (titleHasExactTrack) score += 5;
+    if (titleHasBaseTrack) score += 8;
     score += matchedArtists.length * 4;
 
     if (titleHasArtist) score += 3;
@@ -75,8 +84,8 @@ function scoreYouTubeCandidate(result, track) {
     if (channelHasArtist && channelTitle.includes("topic")) score += 4;
 
     if (!titleHasArtist && !channelHasArtist) score -= 12;
-    if (title.includes("live")) score -= 5;
-    if (title.includes("cover")) score -= 6;
+    if (title.includes("live") && !titleHasExactTrack && !titleHasBaseTrack) score -= 5;
+    if (title.includes("cover") && !titleHasBaseTrack) score -= 6;
     if (title.includes("karaoke")) score -= 8;
     if (title.includes("reaction")) score -= 8;
     if (title.includes("remix")) score -= 5;
@@ -86,6 +95,7 @@ function scoreYouTubeCandidate(result, track) {
 
     return score;
 }
+
 
 export async function getYouTubeVideoById(videoId) {
     const apiKey = process.env.YOUTUBE_API_KEY;
@@ -121,28 +131,52 @@ export async function getYouTubeVideoById(videoId) {
 }
 
 
-function cleanYouTubeTrackTitle(rawTitle) {
-    if (!rawTitle) {
+function cleanYouTubeText(value) {
+    if (!value) {
         return "";
     }
 
-    let title = rawTitle
-        .replace(/\([^)]*official[^)]*\)/gi, "")
-        .replace(/\[[^\]]*official[^\]]*\]/gi, "")
-        .replace(/\([^)]*lyrics?[^)]*\)/gi, "")
-        .replace(/\[[^\]]*lyrics?[^\]]*\]/gi, "")
-        .replace(/\([^)]*audio[^)]*\)/gi, "")
-        .replace(/\[[^\]]*audio[^\]]*\]/gi, "")
+    return value
+        .replace(/\([^)]*(official|original|lyrics?|audio|video)[^)]*\)/gi, "")
+        .replace(/\[[^\]]*(official|original|lyrics?|audio|video)[^\]]*\]/gi, "")
+        .replace(/\s{2,}/g, " ")
         .trim();
+}
 
-    const parts = title.split(/\s[-–—]\s/);
+function parseYouTubeArtistAndTitle(rawTitle) {
+    const cleanedTitle = cleanYouTubeText(rawTitle);
+    const parts = cleanedTitle
+        .split(/\s[-–—]\s/)
+        .map((part) => part.trim())
+        .filter(Boolean);
 
-    if (parts.length > 1) {
-        title = parts.slice(1).join(" - ").trim();
+    if (parts.length >= 2) {
+        const leftSide = parts[0];
+        const rightSide = parts.slice(1).join(" - ");
+
+        const leftWordCount = leftSide.split(/\s+/).filter(Boolean).length;
+        const rightWordCount = rightSide.split(/\s+/).filter(Boolean).length;
+
+        if (leftWordCount > 3 && rightWordCount <= 3) {
+            return {
+                artistFromTitle: rightSide,
+                titleFromTitle: leftSide,
+            };
+        }
+
+        return {
+            artistFromTitle: leftSide,
+            titleFromTitle: rightSide,
+        };
     }
 
-    return title;
+    return {
+        artistFromTitle: "",
+        titleFromTitle: cleanedTitle,
+    };
 }
+
+
 
 function cleanYouTubeChannelArtist(channelTitle) {
     if (!channelTitle) {
@@ -169,8 +203,9 @@ export function normalizeYouTubeTrack(video) {
     const platformTrackId = video.id;
     const rawTitle = video.snippet?.title ?? "";
     const rawChannelTitle = video.snippet?.channelTitle ?? "";
-    const title = cleanYouTubeTrackTitle(rawTitle);
+    const { artistFromTitle, titleFromTitle } = parseYouTubeArtistAndTitle(rawTitle);
     const channelTitle = cleanYouTubeChannelArtist(rawChannelTitle);
+    const primaryArtist = artistFromTitle || channelTitle;
 
     const sourceUrl = `https://www.youtube.com/watch?v=${platformTrackId}`;
 
@@ -178,12 +213,13 @@ export function normalizeYouTubeTrack(video) {
         sourcePlatformSlug: "youtube",
         platformTrackId,
         sourceUrl,
-        title,
+        title: titleFromTitle,
         channelTitle,
-        primaryArtist: channelTitle,
-        artistNames: [channelTitle].filter(Boolean),
-    }
+        primaryArtist,
+        artistNames: [primaryArtist].filter(Boolean),
+    };
 }
+
 
 export async function searchYouTubeForTrack(track) {
     const apiKey = process.env.YOUTUBE_API_KEY;

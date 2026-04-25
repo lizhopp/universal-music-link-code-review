@@ -4150,3 +4150,277 @@ From now on, entries include detailed assistant outputs (not only summaries).
 
   Reference:
   - Vite env variables and deployment-time injection: https://vite.dev/guide/env-and-mode.html
+
+### 2026-04-24 22:05:09 CDT
+- User:
+  Asked whether `initial_page_change` had been merged into `main`, then said they do not want Codex making code changes for them, asked to start work on tracking user conversion history, and requested the handoff be updated before switching machines.
+- Codex:
+  Verified the merge state directly from Git instead of assuming:
+  - `git status --short --branch`
+  - `git branch -vv`
+  - `git rev-list --left-right --count main...initial_page_change`
+  - `git fetch origin`
+  - `git rev-parse main initial_page_change origin/main origin/initial_page_change`
+
+  Verified result:
+  - `main`, `initial_page_change`, `origin/main`, and `origin/initial_page_change` all point to commit `33bf0bf`
+  - commit message: `made conversion accessible by non-users`
+  - `git rev-list --left-right --count main...initial_page_change` returned `0 0`
+  - conclusion: `initial_page_change` is already merged correctly into `main`
+
+  Reviewed the current history feature state against local code and live issues:
+  - checked `server/db/schema.sql`, `server/api/convert.js`, `server/api/conversions.js`, `server/db/seed.js`, and `client/src/App.jsx`
+  - checked issues `#49`, `#50`, `#51`, `#52`, `#53`, and `#54` with `gh issue view`
+  - found that the `conversions` table already exists, but `/convert` does not persist rows yet
+  - found that `GET /conversions` and `DELETE /conversions/:id` are still placeholder routes
+  - found that `client/src/App.jsx` already has a placeholder conversion-history section
+  - recommended the dependency order:
+    - backend first: `#49`, `#50`, `#51`
+    - frontend after that: `#52`, `#53`, `#54`
+  - found one real data caveat for the first persistence slice:
+    - `server/db/seed.js` currently seeds `spotify` and `apple-music`
+    - it does not currently seed `youtube`
+    - that matters if `#49` wants to store `requested_target_platform_id` for YouTube-target conversions
+
+  Recorded the updated working agreement for future sessions:
+  - do not make code changes for the user unless they explicitly ask
+  - default to guided review, explanation, and block-by-block implementation help
+  - updated `CURRENT_HANDOFF.md` to reflect the real verified pause point before the machine switch
+
+  References:
+  - Git branch comparison: https://git-scm.com/docs/git-rev-list
+  - Git branch pointers: https://git-scm.com/docs/git-branch
+
+### 2026-04-24 22:38:33 CDT
+- User:
+  Reported that the YouTube URL `https://www.youtube.com/watch?v=kbB0QrBIs9k` was not converting correctly, then asked for block-by-block guidance and implemented the first parsing helper block in `server/utils/youtube.js`.
+- Codex:
+  Reproduced the failing case against the current repo logic before suggesting a fix:
+  - checked `server/utils/youtube.js`, `server/utils/spotify.js`, and `server/api/convert.js`
+  - verified the failing YouTube video corresponds to `DC Talk - Jesus Freak (Original Video)`
+  - ran the current normalization logic locally and confirmed it produced:
+    - `title: "Jesus Freak (Original Video)"`
+    - `artistNames: ["dctalk"]`
+  - verified that the resulting Spotify query became:
+    - `track:Jesus Freak (Original Video) artist:dctalk`
+  - live API reproduction showed that this query returned `No Spotify match found`
+  - compared query variants and confirmed the cleaned version works:
+    - `title: "Jesus Freak"`
+    - `artist: "DC Talk"`
+    - Spotify returned the correct track for that cleaned query
+
+  Main teaching point:
+  - for `YouTube -> Spotify`, the app should not rely only on `channelTitle` as the artist
+  - many music videos encode useful artist/song structure directly in the title, for example:
+    - `Artist - Song`
+  - bracketed labels like `(Original Video)` need to be stripped before building the Spotify search query
+
+  Guided implementation approach:
+  - first helper block added:
+    - `cleanYouTubeText(...)`
+    - `parseYouTubeArtistAndTitle(...)`
+  - next block is to update `normalizeYouTubeTrack(...)` so it uses the parsed title artist first, then falls back to the cleaned channel name if needed
+
+  References:
+  - MDN `String.prototype.replace()`: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
+  - MDN `String.prototype.split()`: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split
+
+### 2026-04-24 22:40:19 CDT
+- User:
+  Finished the next guided block in `server/utils/youtube.js` and asked for the next step.
+- Codex:
+  Reviewed the updated `normalizeYouTubeTrack(...)` implementation and verified the local normalized output for the failing case now looks correct.
+
+  Verification run:
+  - mocked the YouTube video metadata for `DC Talk - Jesus Freak (Original Video)`
+  - ran `normalizeYouTubeTrack(...)` directly from `server/utils/youtube.js`
+
+  Verified normalized result:
+  - `title: "Jesus Freak"`
+  - `primaryArtist: "DC Talk"`
+  - `artistNames: ["DC Talk"]`
+
+  Practical meaning:
+  - the known bad query shape:
+    - `track:Jesus Freak (Original Video) artist:dctalk`
+  - should now become the cleaner query shape:
+    - `track:Jesus Freak artist:DC Talk`
+  - that is the query variant already proven to return the correct Spotify track for this URL
+
+  Next guided step:
+  - run the exact URL through the app or a direct `/convert` request again to confirm the end-to-end behavior now matches the corrected normalization
+
+### 2026-04-24 22:45:34 CDT
+- User:
+  Reported two new conversion mismatches:
+  - `https://youtu.be/9TqiZA9Az00`
+  - `https://open.spotify.com/track/6NCmU0ETuOf1Dq17u4xrNt?...` should return `https://youtu.be/PRAbIP1tN7g`
+- Codex:
+  Reproduced both cases against the live helper logic and separated them into two different bug classes.
+
+  Case 1: `YouTube -> Spotify` for `9TqiZA9Az00`
+  - live YouTube metadata returned:
+    - title: `Run To The End of the Highway - Keith Green`
+    - channel: `jackbigbox`
+  - current parser treated the first half as the artist and the second half as the song
+  - normalized result became:
+    - `title: "Keith Green"`
+    - `primaryArtist: "Run To The End of the Highway"`
+  - Spotify search then failed with `No Spotify match found`
+
+  Main lesson from case 1:
+  - not every YouTube title follows `Artist - Song`
+  - some titles are `Song - Artist`
+  - title parsing needs a fallback heuristic instead of assuming the left side is always the artist
+
+  Case 2: `Spotify -> YouTube` for track `6NCmU0ETuOf1Dq17u4xrNt`
+  - normalized Spotify track is:
+    - title: `Ghost Town - Live`
+    - artist: `Justin Friello`
+  - the expected YouTube target `PRAbIP1tN7g` is already present in the search results
+  - current scoring still picked the wrong video
+  - score inspection showed why:
+    - expected candidate title contains `COVID COVERS`, which triggered the generic `cover` penalty
+    - the exact-track bonus did not fire because the code checks full-string `Ghost Town - Live`, while the desired YouTube title only contains `Ghost Town`
+    - current scoring therefore preferred a different Justin Friello video with a higher generic artist-match score
+
+  Main lesson from case 2:
+  - blanket negative scoring for words like `cover` can backfire when the track itself is a live/cover-style recording by the same artist
+  - partial title evidence matters when provider naming conventions differ
+
+  Next guided plan:
+  - fix the title-order heuristic first for `9TqiZA9Az00`
+  - then adjust YouTube candidate scoring so strong artist match plus partial title match can beat the current generic penalties
+
+  References:
+  - MDN `Array.prototype.sort()`: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+  - Spotify Search API concepts: https://developer.spotify.com/documentation/web-api/reference/search
+
+### 2026-04-24 22:49:29 CDT
+- User:
+  Finished the next guided parser block for the `Song - Artist` YouTube-title case.
+- Codex:
+  Reviewed the updated `parseYouTubeArtistAndTitle(...)` logic and verified the specific failing case now normalizes correctly.
+
+  Verification run:
+  - mocked the YouTube metadata for:
+    - `Run To The End of the Highway - Keith Green`
+  - ran `normalizeYouTubeTrack(...)` directly from `server/utils/youtube.js`
+
+  Verified normalized result:
+  - `title: "Run To The End of the Highway"`
+  - `primaryArtist: "Keith Green"`
+
+  Main lesson:
+  - a useful fallback heuristic for hyphenated YouTube titles is:
+    - if the left side is much longer and the right side is short, it may be `Song - Artist` instead of `Artist - Song`
+  - this is not perfect, but it is a practical improvement over assuming all hyphenated titles follow one order
+
+  Next guided step:
+  - keep the parser as-is for now
+  - move to the separate `Spotify -> YouTube` scoring bug where the expected `Ghost Town` result is already in the YouTube search results but loses because the current scorer over-penalizes `cover` and under-rewards partial title matches
+
+  References:
+  - MDN regular expressions guide: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions
+
+### 2026-04-24 22:53:12 CDT
+- User:
+  Finished the guided `scoreYouTubeCandidate(...)` update and asked for verification.
+- Codex:
+  Reviewed the updated scorer in `server/utils/youtube.js` and then reran both previously failing cases against the live helper path using the repo's current API credentials.
+
+  Verification cases:
+  - `https://youtu.be/9TqiZA9Az00`
+  - `https://open.spotify.com/track/6NCmU0ETuOf1Dq17u4xrNt?...`
+
+  Verified results:
+  - `YouTube -> Spotify` for `9TqiZA9Az00` now normalizes to:
+    - `title: "Run To The End of the Highway"`
+    - `artist: "Keith Green"`
+  - that now resolves successfully to the Spotify track:
+    - `https://open.spotify.com/track/5QOeq4uxjxhZWF8BvYI2fo`
+  - `Spotify -> YouTube` for track `6NCmU0ETuOf1Dq17u4xrNt` now returns the expected YouTube target:
+    - `https://www.youtube.com/watch?v=PRAbIP1tN7g`
+
+  Main lesson from the scoring fix:
+  - partial/base-title matching is important when provider naming differs, for example:
+    - Spotify title: `Ghost Town - Live`
+    - YouTube title: `... "Ghost Town" ...`
+  - negative heuristics like `cover` or `live` should not automatically beat stronger evidence such as:
+    - same artist
+    - same base song title
+  - ranking is not just about penalties; it is about making sure the best positive evidence can still win
+
+  Practical outcome:
+  - the two reported regression examples now check out through the current helper logic
+  - next useful step is to retest a small batch of mixed examples in the app UI to see whether these heuristics improved results without creating obvious new false positives
+
+  References:
+  - MDN `String.prototype.includes()`: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes
+  - YouTube Data API search.list: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 22:55:23 CDT
+- User:
+  Asked what was meant by "do a short regression batch of 5-10 mixed links in the UI."
+- Codex:
+  Clarified that "regression batch" means a small retest set after a fix, to make sure the new logic solved the reported bugs without breaking examples that used to work.
+
+  Plain-language explanation:
+  - a regression is when a change fixes one problem but accidentally creates a new one somewhere else
+  - because the matching logic in `server/utils/youtube.js` now uses stronger heuristics, the safest next check is not just one passing example
+  - the safer check is a mixed mini-batch such as:
+    - a few links that already worked before
+    - the two links that were just fixed
+    - one or two different edge cases
+
+  Why this matters in this repo:
+  - matching logic is based on heuristics, not a perfect one-to-one database lookup
+  - a heuristic change can improve one song while hurting another
+  - a short mixed retest helps catch obvious false positives before the change is treated like a broad improvement
+
+  Concrete example batch idea:
+  - 2 `Spotify -> YouTube` links that already worked
+  - 2 `YouTube -> Spotify` links that already worked
+  - the `DC Talk` case that was fixed
+  - the `Keith Green` case that was fixed
+  - the `Ghost Town` case that was fixed
+
+  Reference:
+  - MDN testing overview: https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Testing/Introduction
+
+### 2026-04-24 22:56:20 CDT
+- User:
+  Agreed to run the mixed regression batch after the recent YouTube-matcher heuristic changes.
+- Codex:
+  Built and ran a 5-case regression batch through the live helper path using the current repo code plus the real YouTube and Spotify APIs.
+
+  Batch composition:
+  - known-good `Spotify -> YouTube`
+  - known-good `YouTube -> Spotify`
+  - the recently fixed `DC Talk` case
+  - the recently fixed `Keith Green` case
+  - the recently fixed `Ghost Town` case
+
+  Verified passing cases:
+  - `https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT`
+    - expected YouTube: `dQw4w9WgXcQ`
+    - actual YouTube: `dQw4w9WgXcQ`
+  - `https://open.spotify.com/track/6NCmU0ETuOf1Dq17u4xrNt?...`
+    - expected YouTube: `PRAbIP1tN7g`
+    - actual YouTube: `PRAbIP1tN7g`
+  - `https://www.youtube.com/watch?v=gGdGFtwCNBE`
+    - expected Spotify: `003vvx7Niy0yvhvHt4a68B`
+    - actual Spotify: `003vvx7Niy0yvhvHt4a68B`
+  - `https://www.youtube.com/watch?v=kbB0QrBIs9k`
+    - expected Spotify: `5ID6qIRs04r4fMajBDY7uK`
+    - actual Spotify: `5ID6qIRs04r4fMajBDY7uK`
+  - `https://youtu.be/9TqiZA9Az00`
+    - expected Spotify: `5QOeq4uxjxhZWF8BvYI2fo`
+    - actual Spotify: `5QOeq4uxjxhZWF8BvYI2fo`
+
+  Practical conclusion:
+  - the recent parsing and scoring fixes are holding up across both directions in a mixed batch
+  - this does not prove the matcher is perfect, but it does reduce the risk that the latest fixes only solved one isolated example while breaking others
+
+  Reference:
+  - MDN testing overview: https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Testing/Introduction

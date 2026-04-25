@@ -164,9 +164,15 @@ Repo tie-ins:
 - Source-service detection
 - Track ID extraction
 - Metadata normalization
+- For `YouTube -> Spotify`, parse artist/title from titles like `Artist - Song` before falling back to channel names
+- Do not assume every hyphenated YouTube title is `Artist - Song`; some are `Song - Artist`, so parsing needs a heuristic or fallback
+- One practical heuristic is long-left-side plus short-right-side often means `Song - Artist`
+- Strip bracketed YouTube labels like `(Original Video)`, `(Official Video)`, and `(Lyrics)` before building provider search queries
 - Canonical song modeling
 - Cross-platform link matching
 - Confidence scoring
+- Ranking heuristics can conflict: a blanket penalty like `cover` may suppress the correct result when the user actually wants a cover/live recording by the same artist
+- Base-title matching can be more important than exact-title matching when one provider adds suffixes like `- Live` and the other does not
 - Internal normalized shapes vs provider-specific payloads
 - Conversion history recording
 
@@ -204,6 +210,7 @@ Repo tie-ins:
 - verifying auth with authenticated and unauthenticated `/users/me`
 - checking frontend register/login behavior end to end
 - fixing local Postgres/service issues
+- after heuristic changes in `server/utils/youtube.js`, rerun a small mixed set of known-good and newly-fixed links to catch regressions before assuming the matcher improved overall
 
 ## Phase 10: Engineering Workflow And Delivery
 
