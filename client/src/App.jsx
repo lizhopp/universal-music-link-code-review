@@ -6,22 +6,6 @@ const API_BASE = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/$/, "");
 
 const TOKEN_KEY = "uml.auth.token";
 
-function ProtectedRoute({ authToken, authUser, children }) {
-  if (authToken && !authUser) {
-    return (
-      <main>
-        <p>Checking session...</p>
-      </main>
-    );
-  }
-
-  if (!authUser) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-}
-
 async function readJsonResponse(response) {
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
@@ -32,7 +16,7 @@ async function readJsonResponse(response) {
   return data;
 }
 
-function AuthScreen({ mode, setAuthToken, authUser, setAuthUser, onLogout }) {
+function AuthScreen({ mode, setAuthToken, setAuthUser }) {
   const [authMessage, setAuthMessage] = useState("");
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -86,12 +70,6 @@ function AuthScreen({ mode, setAuthToken, authUser, setAuthUser, onLogout }) {
       </div>
       {authMessage ? <p>{authMessage}</p> : null}
       {authError ? <p style={{ color: "crimson" }}>{authError}</p> : null}
-      {authUser ? <p>Signed in as {authUser.email}</p> : null}
-      {authUser ? (
-        <button type="button" onClick={onLogout}>
-          Log Out
-        </button>
-      ) : null}
       <form onSubmit={handleSubmit}>
         <label>
           Email
@@ -190,7 +168,20 @@ function DashboardPage({ authUser, onLogout }) {
   return (
     <main>
       <h1>Dashboard</h1>
-      {authUser ? <p>Signed in as {authUser.email}</p> : null}
+      {authUser ? (
+        <>
+          <p>Signed in as {authUser.email}</p>
+          <button type="button" onClick={onLogout}>
+            Log Out
+          </button>
+        </>
+      ) : (
+        <div>
+          <p>Using the converter as a guest.</p>
+          <Link to="/register">Register</Link>
+          <Link to="/login">Log in</Link>
+        </div>
+      )}
       <form onSubmit={handleConvertSubmit}>
         <label>
           Source URL
@@ -207,13 +198,13 @@ function DashboardPage({ authUser, onLogout }) {
             }
           />
         </label>
-          <p>
-            {targetService === "youtube"
-              ? "Detected Spotify link. Converting to YouTube."
-              : targetService === "spotify"
-                ? "Detected YouTube link. Converting to Spotify."
-                : "Paste a Spotify or YouTube track URL to choose the target automatically."}
-          </p>
+        <p>
+          {targetService === "youtube"
+            ? "Detected Spotify link. Converting to YouTube."
+            : targetService === "spotify"
+              ? "Detected YouTube link. Converting to Spotify."
+              : "Paste a Spotify or YouTube track URL to choose the target automatically."}
+        </p>
         <button
           type="submit"
           disabled={isConverting || !sourceUrl.trim() || !targetService}
@@ -260,9 +251,17 @@ function DashboardPage({ authUser, onLogout }) {
           </a>
         </section>
       ) : null}
-      <button type="button" onClick={onLogout}>
-        Log Out
-      </button>
+      <section>
+        <h2>Conversion History</h2>
+        {authUser ? (
+          <p>Your saved conversions will appear here in a later update.</p>
+        ) : (
+          <p>
+            Log in or register if you want to save conversions and view them
+            later.
+          </p>
+        )}
+      </section>
     </main>
   );
 }
@@ -337,20 +336,12 @@ export default function App() {
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <Navigate to={authToken ? "/dashboard" : "/register"} replace />
-        }
-      />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route
         path="/dashboard"
-        element={
-          <ProtectedRoute authToken={authToken} authUser={authUser}>
-            <DashboardPage authUser={authUser} onLogout={handleLogout} />
-          </ProtectedRoute>
-        }
+        element={<DashboardPage authUser={authUser} onLogout={handleLogout} />}
       />
+
       <Route
         path="/register"
         element={
@@ -360,9 +351,7 @@ export default function App() {
             <AuthScreen
               mode="register"
               setAuthToken={setAuthToken}
-              authUser={authUser}
               setAuthUser={setAuthUser}
-              onLogout={handleLogout}
             />
           )
         }
@@ -376,9 +365,7 @@ export default function App() {
             <AuthScreen
               mode="login"
               setAuthToken={setAuthToken}
-              authUser={authUser}
               setAuthUser={setAuthUser}
-              onLogout={handleLogout}
             />
           )
         }
