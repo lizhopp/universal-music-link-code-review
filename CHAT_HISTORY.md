@@ -3340,3 +3340,731 @@ From now on, entries include detailed assistant outputs (not only summaries).
 
   Reference:
   - Git branch management: https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
+
+### 2026-04-24 13:58:42 CDT
+- User:
+  Said the project is due in 3.5 days, Apple still has not approved the developer account, and the project needs to pivot to YouTube while stripping down features enough to finish on time.
+- Codex:
+  Treated the request as a planning and scope-control pass, not a product-code edit.
+
+  Checked local repo state:
+  - working tree was on `main` tracking `origin/main`
+  - `client/src/App.jsx` still contains the verified auth/router slice
+  - `server/api/convert.js` currently accepts a Spotify URL and returns normalized Spotify metadata, but does not yet return a target-platform link
+  - `server/utils/spotify.js` already handles Spotify token fetch, track fetch, URL detection, ID extraction, and normalization
+  - `server/db/seed.js` still seeds Spotify and Apple Music only
+  - README still describes Spotify + Apple Music as MVP
+
+  Checked live issue/project context:
+  - `#16` through `#20` are done on the project board
+  - `#21` Setup Apple Music API client is still `In Progress`
+  - `#22` Search Apple Music for track and `#67` Test valid Spotify -> Apple conversion are still `Ready`
+  - `#80` Add YouTube Music support already exists but is currently treated as a stretch goal
+  - frontend conversion issues `#12`, `#13`, `#14`, `#15`, `#26`, `#27`, and `#34` are still ready and become part of the deadline MVP path
+
+  Recommended the new MVP cut:
+  - keep auth because it is already working and demonstrates full-stack depth
+  - make the central demo Spotify URL -> Spotify metadata -> YouTube search -> YouTube target link
+  - defer settings, preferences, history, browser extension, recommendations, playlists, rate limiting, and advanced matching
+  - move Apple API work to blocked/post-MVP instead of letting it block the deadline
+
+  Updated tracking docs only:
+  - `CURRENT_HANDOFF.md` now points at the YouTube conversion vertical slice instead of `#57` settings
+  - `STUDY_PLAN.md` now includes YouTube API-key/quota concepts and the new near-term pivot slice
+
+  References:
+  - YouTube Data API overview: https://developers.google.com/youtube/v3/getting-started
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+  - YouTube quota costs: https://developers.google.com/youtube/v3/determine_quota_cost
+
+### 2026-04-24 14:02:11 CDT
+- User:
+  Clarified that they would rather Codex keep guiding them through the code instead of directly implementing the pivot.
+- Codex:
+  Confirmed the workflow:
+  - Codex will explain the next slice block by block
+  - Codex will point to the exact files and logic to change
+  - the user will write the product code
+  - Codex will review, debug, and verify as requested
+  - no product code should be created or changed unless the user explicitly asks for direct edits
+
+### 2026-04-24 14:14:12 CDT
+- User:
+  Clarified that they want example code plus a line-by-line, block-by-block walkthrough explaining what the code does and why each part is necessary.
+- Codex:
+  Re-read `server/api/convert.js` and `server/utils/spotify.js`, then prepared a guided example for the YouTube pivot without editing product code.
+
+  Teaching focus:
+  - keep provider-specific YouTube code in a helper module instead of crowding the route
+  - keep `/convert` responsible for request flow orchestration
+  - use Spotify metadata as the clean input for a YouTube search query
+  - return a structured response with `sourceService`, `targetService`, `sourceTrack`, and `targetTrack`
+
+  Reference:
+  - YouTube Data API `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 14:16:31 CDT
+- User:
+  Corrected the teaching format: do not show the full code right away. Instead, show small blocks to implement in order and explain each line/block like a teacher.
+- Codex:
+  Adjusted the guidance approach:
+  - present one implementation block at a time
+  - explain what each line does before asking the user to move forward
+  - avoid dumping the full final solution up front
+  - keep the user in control of writing the product code
+
+### 2026-04-24 14:43:42 CDT
+- User:
+  Reported that Block 1 for `server/utils/youtube.js` was done.
+- Codex:
+  Verified that `buildYouTubeSearchQuery(track)` exists in `server/utils/youtube.js` and matches the `primaryArtist` field returned by `normalizeSpotifyTrack()` in `server/utils/spotify.js`.
+
+  Prepared the next guided block: create `searchYouTubeForTrack(track)` with a backend-only `process.env.YOUTUBE_API_KEY` check before making any YouTube API request.
+
+  Reference:
+  - Node.js environment variables: https://nodejs.org/api/environment_variables.html
+
+### 2026-04-24 14:51:29 CDT
+- User:
+  Reported that Block 2 for `server/utils/youtube.js` was done.
+- Codex:
+  Verified that `searchYouTubeForTrack(track)` now reads `process.env.YOUTUBE_API_KEY`, guards against a missing key, and reuses `buildYouTubeSearchQuery(track)` before any external request is made.
+
+  Prepared the next guided block: import `axios`, define the YouTube search endpoint constant, and make the first `axios.get(...)` call to `search.list` using the built query.
+
+  Reference:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 15:03:56 CDT
+- User:
+  Reported that Block 3 for `server/utils/youtube.js` was done.
+- Codex:
+  Reviewed the helper and caught two implementation corrections before moving to normalization:
+  - package imports should use `import axios from "axios";`, matching `server/utils/spotify.js`, instead of a `#node_modules/...` path
+  - the YouTube Data API search endpoint should be `https://www.googleapis.com/youtube/v3/search`
+
+  Held the next block until those two lines are corrected so the first API request shape matches the official `search.list` docs.
+
+  References:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+  - ECMAScript modules in Node.js packages: https://nodejs.org/api/packages.html
+
+### 2026-04-24 15:06:35 CDT
+- User:
+  Reported that the Block 3 corrections were applied in `server/utils/youtube.js`.
+- Codex:
+  Re-verified that the helper now imports `axios` from the installed package and points to the correct YouTube search endpoint.
+
+  Prepared the next guided block: stop returning the raw YouTube API payload and instead extract the first result, guard against no match, and return a normalized target-track object.
+
+  Reference:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 15:21:09 CDT
+- User:
+  Reported that the normalization block for `server/utils/youtube.js` was done.
+- Codex:
+  Verified that `searchYouTubeForTrack(track)` now returns a normalized YouTube target object with `targetPlatformSlug`, `platformTrackId`, `title`, `channelTitle`, `url`, and `searchQuery` instead of the raw API payload.
+
+  Prepared the next guided block in `server/api/convert.js`: import the YouTube helper, remove the old required target-platform field, call the helper with normalized Spotify data, and return both `sourceTrack` and `targetTrack` in the response.
+
+  Reference:
+  - Express routing guide: https://expressjs.com/en/guide/routing.html
+
+### 2026-04-24 15:27:24 CDT
+- User:
+  Said they are willing to put in the time to make conversion bidirectional before the deadline instead of stopping at the one-way Spotify -> YouTube slice.
+- Codex:
+  Agreed that bidirectional conversion is possible, but clarified the safest engineering order:
+  - first finish and test the current one-way backend path because `server/api/convert.js` is still mid-refactor and cannot be trusted yet
+  - then generalize the route contract to carry a target service again
+  - then add the reverse helper path for YouTube -> Spotify
+
+  Called out the real asymmetry: Spotify source data is structured and easy to normalize, while YouTube source data is messier and will require URL parsing, video metadata lookup, and likely title/artist heuristics before Spotify search can be reliable.
+
+  Reference:
+  - YouTube Data API `videos.list`: https://developers.google.com/youtube/v3/docs/videos/list
+
+### 2026-04-24 15:31:31 CDT
+- User:
+  Reported that Block 5 in `server/api/convert.js` was done.
+- Codex:
+  Verified that the `/convert` route now imports the YouTube helper, only requires `sourceUrl`, normalizes the Spotify source track, calls `searchYouTubeForTrack(sourceTrack)`, and returns `{ sourceService, targetService, sourceTrack, targetTrack }`.
+
+  Shifted the next step from coding to verification: manually test `POST /convert` on the live backend because the one-way pipeline is now assembled end to end and needs runtime proof before any bidirectional refactor.
+
+  References:
+  - Express routing guide: https://expressjs.com/en/guide/routing.html
+  - MDN HTTP POST method: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
+
+### 2026-04-24 15:37:23 CDT
+- User:
+  Reported that backend testing worked for the current `/convert` flow.
+- Codex:
+  Treated the successful live request as the success bar for the backend vertical slice and updated continuity docs to reflect the verified state.
+
+  Recorded that:
+  - `server/utils/youtube.js` now searches YouTube using normalized Spotify metadata
+  - `server/api/convert.js` now returns `{ sourceService, targetService, sourceTrack, targetTrack }`
+  - `POST /convert` works locally for the one-way Spotify -> YouTube path
+
+  Recommended the next dependency-safe slice as frontend integration for the deadline demo, with bidirectional backend work as the next refactor after the end-to-end demo path is visible.
+
+  References:
+  - Express routing guide: https://expressjs.com/en/guide/routing.html
+  - MDN HTTP POST method: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
+
+### 2026-04-24 15:39:14 CDT
+- User:
+  Clarified that there is currently no frontend component that owns a conversion form.
+- Codex:
+  Verified the local frontend shape:
+  - `client/src/App.jsx` contains auth routes, `DashboardPage`, and auth forms
+  - there is no separate conversion page or conversion-form component yet
+
+  Recommended the smallest safe frontend slice for the deadline demo:
+  - start by adding the first conversion form directly inside `DashboardPage` in `client/src/App.jsx`
+  - only split it into its own page/component after the end-to-end demo works
+
+  Reference:
+  - React conditional rendering and component structure: https://react.dev/learn/conditional-rendering
+
+### 2026-04-24 15:41:05 CDT
+- User:
+  Opened `client/src/App.jsx` and was ready to start the first frontend conversion block inside `DashboardPage`.
+- Codex:
+  Re-checked `DashboardPage` and confirmed it is still minimal, so the first frontend block should only add local state for the conversion form and result flow before any JSX or fetch logic is introduced.
+
+  Reference:
+  - React state with `useState`: https://react.dev/reference/react/useState
+
+### 2026-04-24 15:48:07 CDT
+- User:
+  Reported that the first frontend state block was added inside `DashboardPage` in `client/src/App.jsx`.
+- Codex:
+  Verified that local state now exists for `sourceUrl`, `convertError`, `convertResult`, and `isConverting`.
+
+  Prepared the next guided block: add the first conversion form UI and placeholder loading/error/result areas inside `DashboardPage`, still without the submit handler or fetch logic.
+
+  Reference:
+  - React forms: https://react.dev/reference/react-dom/components/input
+
+### 2026-04-24 16:01:19 CDT
+- User:
+  Reported that the second frontend block was added inside `DashboardPage` in `client/src/App.jsx`.
+- Codex:
+  Verified that the dashboard now renders a conversion form, disables submit when the input is empty or loading, and has placeholder areas for `convertError` and `convertResult`.
+
+  Prepared the next guided block: add the real submit handler that posts `sourceUrl` to `/convert`, uses `readJsonResponse(...)`, and fills the existing loading, error, and result state.
+
+  Reference:
+  - MDN Fetch API: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+
+### 2026-04-24 16:06:43 CDT
+- User:
+  Reported that the submit-handler block was added inside `DashboardPage` in `client/src/App.jsx`.
+- Codex:
+  Verified that the form now posts `sourceUrl` to `${API_BASE}/convert`, clears prior error/result state, toggles loading state, and stores the successful response in `convertResult`.
+
+  Prepared the next guided block: replace the placeholder result rendering with a more complete source/target summary so the user can actually inspect the conversion output in the UI.
+
+  Reference:
+  - MDN Fetch API: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+
+### 2026-04-24 16:08:39 CDT
+- User:
+  Reported that the conversion-result rendering block was added inside `DashboardPage` in `client/src/App.jsx`.
+- Codex:
+  Verified that the dashboard now renders source service, source track, source artist, target service, YouTube match title, channel title, and a clickable YouTube result link from `convertResult`.
+
+  Also ran a frontend compile check:
+  - `cd client && npm run build`
+  - Vite production build succeeded
+
+  Recommended the next step as browser verification of the full dashboard conversion flow before adding any UI polish or bidirectional refactor work.
+
+  References:
+  - React conditional rendering: https://react.dev/learn/conditional-rendering
+  - Vite build guide: https://vite.dev/guide/build
+
+### 2026-04-24 16:17:25 CDT
+- User:
+  Clarified that `client/.env.local` already existed while debugging why the dashboard conversion request was still failing.
+- Codex:
+  Checked the actual local env and confirmed the issue was not the file's absence but its value:
+  - `client/.env.local` currently sets `VITE_API_URL=/api`
+  - `client/src/App.jsx` uses that value as `API_BASE`
+  - `client/vite.config.js` proxies `/api` to the deployed Render backend
+
+  Explained that this keeps local frontend requests pointed at Render instead of the local backend. The fix for local full-stack testing is to change `VITE_API_URL` to `http://localhost:3000` and restart the Vite dev server so env changes are reloaded.
+
+  References:
+  - Vite env variables: https://vite.dev/guide/env-and-mode
+  - Vite server proxy: https://vite.dev/config/server-options#server-proxy
+
+### 2026-04-24 16:22:44 CDT
+- User:
+  Reported that the dashboard conversion now works, but the chosen YouTube result is often the wrong video because the current helper can surface a popular unofficial upload instead of the official track.
+- Codex:
+  Confirmed that this is a backend matching-quality limitation in `server/utils/youtube.js`, not a frontend bug. The helper currently:
+  - builds one broad query from Spotify title + artist
+  - requests `maxResults: 1`
+  - immediately accepts the first `search.list` result
+
+  Explained the next safe improvement path:
+  - request several YouTube candidates instead of one
+  - constrain the search more toward music
+  - score candidates so official audio/video and artist-owned channels beat covers, live uploads, lyrics videos, reactions, and reuploads
+
+  References:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+  - YouTube quota costs: https://developers.google.com/youtube/v3/determine_quota_cost
+
+### 2026-04-24 16:24:11 CDT
+- User:
+  Agreed to work on improving YouTube match quality instead of stopping at the first search hit.
+- Codex:
+  Re-opened `server/utils/youtube.js` and kept the same guided workflow. Chose the smallest next block:
+  - add a candidate-scoring helper first
+  - keep the API call unchanged for the moment
+  - only then switch the search request from one result to several and pick the highest-scoring candidate
+
+  Reference:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 16:31:01 CDT
+- User:
+  Reported that the first YouTube-ranking block was added in `server/utils/youtube.js`.
+- Codex:
+  Verified the new scoring helper shape, then caught a blocking typo before moving forward:
+  - `result.snipper?.title` should be `result.snippet?.title`
+
+  Held the next block until that correction is made because title scoring would otherwise always fail and undermine the ranking logic.
+
+  Reference:
+  - JavaScript optional chaining: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+
+### 2026-04-24 16:31:33 CDT
+- User:
+  Reported that the scoring-helper typo in `server/utils/youtube.js` was corrected.
+- Codex:
+  Re-verified the helper and confirmed the title-scoring path is now active.
+
+  Prepared the next guided block:
+  - request multiple YouTube candidates
+  - bias the search toward music results
+  - score all candidates and keep only the highest-scoring one
+  - leave the normalized return shape unchanged
+
+  Reference:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 16:39:05 CDT
+- User:
+  Reported that the second YouTube-ranking block was added in `server/utils/youtube.js`.
+- Codex:
+  Verified that the helper now:
+  - requests multiple YouTube candidates instead of one
+  - biases the search toward music with `videoCategoryId: "10"`
+  - scores candidates with `scoreYouTubeCandidate(...)`
+  - selects the highest-scoring candidate before building the normalized return object
+
+  Also re-ran the frontend compile check:
+  - `cd client && npm run build`
+  - Vite production build succeeded
+
+  Recommended the next step as live retesting through the dashboard so the new matching quality can be judged against real tracks before adding more heuristics.
+
+  References:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+  - Vite build guide: https://vite.dev/guide/build
+
+### 2026-04-24 16:43:32 CDT
+- User:
+  Reported a real mismatch case where the chosen YouTube result was not even the same artist for a tested Spotify track.
+- Codex:
+  Reviewed the current scorer and identified a concrete ranking flaw:
+  - the helper currently rewards any `Topic` channel with `channelTitle.includes("topic")`
+  - that bonus does not require the channel or title to mention the expected artist
+  - a wrong video with a common title plus `official audio` and `Topic` signals can therefore outrank the correct artist
+
+  Recommended the next focused scoring fix:
+  - add a strong penalty when neither the candidate title nor channel mentions the expected artist
+  - only reward `Topic` when the channel also matches the artist
+  - consider removing `official audio` from the search query later if ranking still drifts
+
+  Reference:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 16:50:56 CDT
+- User:
+  Retested the same Spotify link after the first ranking fix and reported that the chosen YouTube result was still wrong.
+- Codex:
+  Tightened the diagnosis further:
+  - the current pipeline only carries `primaryArtist` from Spotify in `server/utils/spotify.js`
+  - the tested track includes more than one credited artist, so the scorer is missing useful artist-match evidence
+  - `server/utils/youtube.js` still hardcodes `official audio` in the query, which can bias search away from the correct upload when the official YouTube title uses a different pattern
+
+  Recommended the next targeted improvement:
+  - include all Spotify artist names in the normalized source track
+  - use those names in YouTube query building and candidate scoring
+  - consider removing or softening the forced `official audio` phrase once the richer artist metadata is available
+
+  References:
+  - Spotify track page for the tested ID: https://open.spotify.com/track/702TQdZDsXUIMXsBz4nFuY
+  - YouTube search results for the tested song: https://www.youtube.com/results?search_query=She+Who+Sees+All+Soul+Wun+Mauricesax
+
+### 2026-04-24 16:54:56 CDT
+- User:
+  Reported that the Spotify normalization change for richer artist metadata was done.
+- Codex:
+  Verified the intended shape, then caught one blocking typo before the new data could help matching:
+  - `track.artist` should be `track.artists`
+
+  Held the next YouTube-query/scoring block until that correction is made because `artistNames` would otherwise always be empty.
+
+  Reference:
+  - Spotify Web API track object fields: https://developer.spotify.com/documentation/web-api/reference/get-track
+
+### 2026-04-24 16:56:26 CDT
+- User:
+  Reported that the `artistNames` typo in `server/utils/spotify.js` was corrected.
+- Codex:
+  Re-verified `normalizeSpotifyTrack()` and confirmed that the normalized source track now includes:
+  - `primaryArtist`
+  - `artistNames`
+
+  Prepared the next guided block in `server/utils/youtube.js`:
+  - build the query from `artistNames`
+  - compute artist matches across all credited artists instead of only `primaryArtist`
+  - keep the API contract and frontend response shape unchanged
+
+  Reference:
+  - Spotify Web API track object fields: https://developer.spotify.com/documentation/web-api/reference/get-track
+
+### 2026-04-24 17:02:21 CDT
+- User:
+  Reported that the `artistNames` query/scoring block was added in `server/utils/youtube.js`.
+- Codex:
+  Verified that the helper now:
+  - builds the YouTube query from all credited Spotify artists
+  - scores artist matches across all `artistNames`
+  - no longer depends only on `primaryArtist` for query construction and scoring
+
+  Recommended the next step as a live retest of the same previously bad Spotify track so the new ranking behavior can be evaluated against the known failure case.
+
+  Reference:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 17:03:16 CDT
+- User:
+  Reported that retesting the previously mismatched Spotify track now worked with the improved YouTube matcher.
+- Codex:
+  Treated that retest as a real quality checkpoint, not just a compile check.
+
+  Recorded that the current ranking improvements now include:
+  - multiple YouTube candidates instead of a single first hit
+  - music-category filtering
+  - penalties for likely bad matches
+  - artist-aware query/scoring using all credited Spotify artists
+
+  Updated `CURRENT_HANDOFF.md` so the next session starts from the verified matcher state instead of the older first-result-only assumptions.
+
+  Recommended the next safest step:
+  - test several more tracks, especially edge cases, and only then decide whether the matcher is good enough for the deadline demo or needs another scoring pass
+
+  Reference:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 17:07:33 CDT
+- User:
+  Reported that broader testing now checks out for the current Spotify -> YouTube flow.
+- Codex:
+  Treated that as the success bar for the current one-way demo path and updated `CURRENT_HANDOFF.md` accordingly.
+
+  Recorded that:
+  - the current one-way matcher appears good enough for the tested local cases
+  - the project is now at a scope decision point rather than a bug-fix checkpoint
+
+  Recommended the next safest move:
+  - either freeze the one-way flow and move to deployment/docs
+  - or intentionally expand scope into a bidirectional backend contract refactor
+
+  Reference:
+  - YouTube `search.list`: https://developers.google.com/youtube/v3/docs/search/list
+
+### 2026-04-24 17:08:44 CDT
+- User:
+  Reaffirmed that the project needs bidirectional conversion instead of stopping at the verified one-way Spotify -> YouTube flow.
+- Codex:
+  Treated that as a scope decision and laid out the clean bidirectional path from the current codebase:
+  - add YouTube-source parsing and metadata fetch
+  - add Spotify search-from-metadata for the reverse direction
+  - restore an explicit target-service contract in `POST /convert`
+  - branch the route by source service and target service instead of hardcoding Spotify -> YouTube
+  - add a target selector in the dashboard form after the backend contract is in place
+
+  Kept the workflow guided and block-by-block so the existing verified one-way path is used as the baseline instead of being rewritten all at once.
+
+  Reference:
+  - YouTube `videos.list`: https://developers.google.com/youtube/v3/docs/videos/list
+
+### 2026-04-24 17:28:07 CDT
+- User:
+  Reported that the first bidirectional block was added in `server/utils/youtube.js`.
+- Codex:
+  Verified that `extractYouTubeVideoId(url)` now exists and can parse standard YouTube URLs plus `youtu.be` short URLs.
+
+  Prepared the next guided reverse-direction block:
+  - add a YouTube video-details fetch helper using `videos.list`
+  - keep it provider-specific inside `server/utils/youtube.js`
+  - leave route branching for a later step
+
+  Reference:
+  - YouTube `videos.list`: https://developers.google.com/youtube/v3/docs/videos/list
+
+### 2026-04-24 17:36:00 CDT
+- User:
+  Reported that the YouTube `videos.list` helper block was added in `server/utils/youtube.js`.
+- Codex:
+  Verified that `getYouTubeVideoById(videoId)` now exists and fetches a single YouTube video item by ID using `part: "snippet"`.
+
+  Prepared the next guided reverse-direction block:
+  - normalize the raw YouTube video into a source-track shape the rest of the app can use
+  - keep the normalization provider-specific inside `server/utils/youtube.js`
+  - leave Spotify searching and route branching for later steps
+
+  Reference:
+  - YouTube `videos.list`: https://developers.google.com/youtube/v3/docs/videos/list
+
+### 2026-04-24 17:42:24 CDT
+- User:
+  Reported that the YouTube normalization URL fix was applied in `server/utils/youtube.js`.
+- Codex:
+  Re-verified that `normalizeYouTubeTrack(video)` now builds a valid canonical YouTube watch URL in `sourceUrl`.
+
+  Prepared the next guided reverse-direction block in `server/utils/spotify.js`:
+  - add a Spotify search helper that takes normalized metadata instead of a Spotify track ID
+  - keep it provider-specific
+  - leave route branching for the later `/convert` refactor step
+
+  Reference:
+  - Spotify search endpoint: https://developer.spotify.com/documentation/web-api/reference/search
+
+### 2026-04-24 17:59:27 CDT
+- User:
+  Reported that the Spotify reverse-search URL typo was corrected.
+- Codex:
+  Re-verified the `searchSpotifyForTrack(track)` helper and confirmed it now points at the correct Spotify search endpoint.
+
+  While preparing the `/convert` refactor, identified one more small prerequisite:
+  - `detectSourceService(url)` in `server/utils/spotify.js` still recognizes Spotify and Apple Music only
+  - bidirectional branching needs it to recognize YouTube and `youtu.be` URLs first
+
+  Adjusted the next guided step accordingly: extend service detection before changing the route contract.
+
+  Reference:
+  - URL hostname parsing with the `URL` API: https://developer.mozilla.org/en-US/docs/Web/API/URL/hostname
+
+### 2026-04-24 18:38:07 CDT
+- User:
+  Reported that the source-service detection block was added for YouTube URLs.
+- Codex:
+  Verified that `detectSourceService(url)` now recognizes:
+  - Spotify
+  - YouTube / YouTube Music
+  - `youtu.be`
+  - Apple Music
+
+  Prepared the next guided block as the actual `/convert` contract refactor:
+  - require `sourceUrl` and `targetService`
+  - branch `spotify -> youtube`
+  - branch `youtube -> spotify`
+  - keep the response shape as `{ sourceService, targetService, sourceTrack, targetTrack }`
+
+  Reference:
+  - Express routing guide: https://expressjs.com/en/guide/routing.html
+
+### 2026-04-24 18:43:36 CDT
+- User:
+  Reported that the bidirectional `/convert` route block was added.
+- Codex:
+  Verified the new branch structure and helper usage, then caught one contract mismatch before moving to the frontend:
+  - the route body now expects `targetService`
+  - but `requireBody(...)` still only requires `sourceUrl`
+
+  Held the next client-side contract block until the middleware requirement is aligned with the route body, so missing `targetService` fails clearly and consistently.
+
+  Reference:
+  - Express middleware patterns: https://expressjs.com/en/guide/using-middleware.html
+
+### 2026-04-24 18:44:51 CDT
+- User:
+  Reported that the `/convert` middleware requirement was fixed to include `targetService`.
+- Codex:
+  Re-verified the route contract and confirmed the backend now consistently expects both:
+  - `sourceUrl`
+  - `targetService`
+
+  Prepared the next guided block in `client/src/App.jsx`:
+  - add `targetService` state in `DashboardPage`
+  - default it to `"youtube"` so the current path keeps working
+  - send `{ sourceUrl, targetService }` in the convert request
+
+  Reference:
+  - React state with `useState`: https://react.dev/reference/react/useState
+
+### 2026-04-24 17:58:04 CDT
+- User:
+  Reported that the Spotify reverse-search helper block was added in `server/utils/spotify.js`.
+- Codex:
+  Verified the helper shape, then caught one blocking typo before moving to route branching:
+  - `SPOTIFY_SEARCH_URL` is currently `https://api/spotify.com/v1/search` and should be `https://api.spotify.com/v1/search`
+
+  Held the `/convert` bidirectional refactor block until that correction is made so the reverse Spotify search helper points at a valid endpoint.
+
+  Reference:
+  - Spotify search endpoint: https://developer.spotify.com/documentation/web-api/reference/search
+
+### 2026-04-24 17:41:28 CDT
+- User:
+  Reported that the YouTube normalization block was added in `server/utils/youtube.js`.
+- Codex:
+  Verified the new normalization helper shape, then caught one blocking typo before continuing:
+  - `sourceUrl` is currently built as `https://www.youtube.com/watch?v${platformTrackId}` and needs the `=` after `v`
+
+  Held the next reverse-direction block until that correction is made so the normalized YouTube source object carries a valid canonical URL.
+
+  Reference:
+  - URL query parameter syntax: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+
+### 2026-04-24 18:47:07 CDT
+- User:
+  Reported that the frontend contract block was added in `client/src/App.jsx`.
+- Codex:
+  Verified that `DashboardPage` now keeps `targetService` in state and sends `{ sourceUrl, targetService }` to `/convert`, which matches the backend route contract.
+
+  Prepared the next guided UI block:
+  - add a target-service selector
+  - make the input label and button text stop assuming Spotify -> YouTube only
+  - keep the fetch and result structure unchanged for the moment
+
+  Reference:
+  - React `<select>` element: https://react.dev/reference/react-dom/components/select
+
+### 2026-04-24 19:09:08 CDT
+- User:
+  Reported that the target-service selector block was added in `client/src/App.jsx`.
+- Codex:
+  Verified that the dashboard now exposes `targetService` in the UI through a selector, updates the placeholder by selected direction, and updates the button text accordingly.
+
+  Also reran a frontend compile check:
+  - `cd client && npm run build`
+  - Vite production build succeeded
+
+  Prepared the next guided UI block:
+  - make result rendering work for either target service
+  - stop assuming the target object always has `channelTitle` and `url`
+  - render the correct outbound link for YouTube or Spotify
+
+  Reference:
+  - React conditional rendering: https://react.dev/learn/conditional-rendering
+
+### 2026-04-24 19:10:59 CDT
+- User:
+  Reported that the bidirectional result-render block was added in `client/src/App.jsx`.
+- Codex:
+  Verified that the dashboard result section now renders the correct target-specific fields and outbound link for either:
+  - YouTube targets
+  - Spotify targets
+
+  Also reran a frontend compile check:
+  - `cd client && npm run build`
+  - Vite production build succeeded
+
+  Recommended the next step as runtime verification of both directions through the dashboard:
+  - Spotify -> YouTube
+  - YouTube -> Spotify
+
+  Reference:
+  - React conditional rendering: https://react.dev/learn/conditional-rendering
+
+### 2026-04-24 19:13:55 CDT
+- User:
+  Reported a failed `YouTube -> Spotify` test for `https://www.youtube.com/watch?v=gGdGFtwCNBE`, which surfaced `Failed to search Spotify track: No Spotify match found.`
+- Codex:
+  Diagnosed the miss as a reverse-normalization problem rather than a route-wiring bug:
+  - the tested YouTube video is `The Killers - Mr. Brightside (Official Music Video)`
+  - `normalizeYouTubeTrack(video)` currently keeps the raw YouTube title
+  - `searchSpotifyForTrack(track)` then uses that raw title in a structured Spotify query
+  - the extra artist prefix and `(Official Music Video)` suffix make the query too literal for Spotify track search
+
+  Recommended the next focused fix:
+  - add a small YouTube-title cleanup helper
+  - strip common wrappers like `(Official Music Video)` / `(Official Video)` / `(Lyrics)` from the reverse source title
+  - if the title begins with the channel artist pattern like `Artist - Song`, strip the repeated artist prefix before Spotify search
+
+  References:
+  - YouTube video page: https://www.youtube.com/watch?v=gGdGFtwCNBE
+  - Spotify search endpoint: https://developer.spotify.com/documentation/web-api/reference/search
+
+### 2026-04-24 19:20:53 CDT
+- User:
+  Reported that the same `YouTube -> Spotify` failure still occurs after adding the reverse title/channel cleanup helpers.
+- Codex:
+  Rechecked the current reverse-path code and narrowed the remaining problem further:
+  - `server/utils/youtube.js` now cleans the YouTube title, so `Mr. Brightside` is likely being preserved correctly
+  - but `cleanYouTubeChannelArtist(channelTitle)` only strips suffixes like `VEVO` and `- Topic`
+  - it does not restore word spacing for compressed channel names like `TheKillersVEVO`
+  - `normalizeYouTubeTrack(video)` therefore likely produces `artistNames: ["TheKillers"]`
+  - `searchSpotifyForTrack(track)` still builds a strict structured query using that artist string:
+    - `track:${track.title} artist:${track.artistNames.join(" ")}`
+
+  Recommended the next narrow fix:
+  - improve `cleanYouTubeChannelArtist(channelTitle)` so it inserts spaces between joined capitalized words after suffix cleanup
+  - example target behavior:
+    - `TheKillersVEVO` -> `The Killers`
+    - `ArianaGrandeVevo` -> `Ariana Grande`
+
+  References:
+  - Spotify search endpoint: https://developer.spotify.com/documentation/web-api/reference/search
+  - JavaScript `String.prototype.replace()`: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
+
+### 2026-04-24 19:25:38 CDT
+- User:
+  Reported that `YouTube -> Spotify` now works for `Mr. Brightside`, but another test still fails for `https://www.youtube.com/watch?v=fJ9rUzIMcZQ`.
+- Codex:
+  Rechecked the reverse-path cleaners and identified a new normalization edge case:
+  - the failing YouTube source uses a Unicode dash in the title rather than the plain ASCII ` - ` separator
+  - `cleanYouTubeTrackTitle(rawTitle)` currently only strips the artist prefix when the title contains the exact text ` - `
+  - some branded music channels also append `Official` to the channel name, which makes the reverse Spotify artist query too strict
+
+  Recommended the next narrow fix:
+  - update the title splitter to handle `-`, `–`, and `—`
+  - strip a trailing `Official` label from cleaned YouTube channel names before building the Spotify search query
+
+  References:
+  - YouTube video page: https://www.youtube.com/watch?v=fJ9rUzIMcZQ
+  - Spotify search endpoint: https://developer.spotify.com/documentation/web-api/reference/search
+
+### 2026-04-24 19:39:51 CDT
+- User:
+  Reported that the recent YouTube edge-case test set is now fully passing.
+- Codex:
+  Treated this as a verified local checkpoint for the bidirectional conversion slice:
+  - `Spotify -> YouTube` is still passing after the earlier YouTube candidate-ranking improvements
+  - `YouTube -> Spotify` now passes the recent reverse-normalization edge cases after:
+    - spacing cleanup for camel-cased channel names such as `TheKillersVEVO`
+    - support for Unicode title separators like `–` and `—`
+    - stripping trailing `Official` branding from cleaned YouTube channel names
+
+  Confirmed the practical outcome:
+  - the current dashboard form and `/convert` contract are now behaving as a local bidirectional demo path rather than a one-way-only test harness
+
+  Recommended the next move as stabilization work instead of more matcher tweaks:
+  - freeze the conversion logic unless a new failing real track appears
+  - align README / board / deployment notes with the now-verified bidirectional YouTube pivot
+
+  References:
+  - Spotify search endpoint: https://developer.spotify.com/documentation/web-api/reference/search
+  - YouTube Data API `videos.list`: https://developers.google.com/youtube/v3/docs/videos/list

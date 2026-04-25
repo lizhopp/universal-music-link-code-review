@@ -186,7 +186,8 @@ Why this matters:
 
 Repo tie-ins:
 - Spotify client work
-- planned Apple Music client work
+- Apple Music client work is now blocked by developer-account approval, so the deadline pivot is Spotify -> YouTube
+- YouTube Data API public search can use an API key, but `search.list` is quota-expensive and should be called deliberately
 - env/config requirements for provider credentials
 
 ## Phase 9: Testing, Verification, And Debugging
@@ -266,6 +267,8 @@ Use this project to practice answers like:
 - Auth documentation cleanup
 - Database reasoning from the ERD
 - Conversion-pipeline thinking: detect, extract, fetch, normalize, match, return
+- YouTube pivot slice: Spotify metadata -> YouTube search -> first target link -> frontend result
+- External API quota thinking: one provider call can be cheap or expensive depending on endpoint choice
 - Code-defense narration for the auth vertical slice
 - Explaining middleware order and request flow without reading line by line
 - Practicing clean tradeoff answers: what is implemented, what is partial, and what comes next
@@ -286,6 +289,14 @@ Definition:
 
 Example:
 - `POST /users/login` expects `email` and `password`, then returns a `token`, `user`, and `message`.
+
+### API Key
+
+Definition:
+- A credential that identifies the app/project when calling some third-party APIs.
+
+Example:
+- A backend `YOUTUBE_API_KEY` can call public YouTube Data API read endpoints without logging in as a YouTube user.
 
 ### Authenticated Request
 
@@ -425,6 +436,14 @@ Definition:
 
 Example:
 - Spotify and Apple Music are providers in this project.
+
+### Quota
+
+Definition:
+- A usage budget from an external API provider.
+
+Example:
+- YouTube `search.list` costs more quota than `videos.list`, so repeated searches should be limited during demos and testing.
 
 ### Regular Expression (Regex)
 

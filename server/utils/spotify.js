@@ -1,5 +1,44 @@
 import axios from "axios";
 
+
+const SPOTIFY_SEARCH_URL = "https://api.spotify.com/v1/search";
+
+
+export async function searchSpotifyForTrack(track){
+  if(!track?.title || !track?.artistNames?.length) {
+    throw new Error("Track title and artist are required for Spotify search.");
+  }
+
+  const accessToken = await getSpotifyAccessToken();
+  const query = `track:${track.title} artist:${track.artistNames.join(" ")}`;
+
+  try {
+    const response = await axios.get(SPOTIFY_SEARCH_URL, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      params: {
+        q: query,
+        type: "track",
+        limit: 5,
+      },
+    });
+
+    const [firstTrack] = response.data.tracks?.items ?? [];
+
+    if(!firstTrack) {
+      throw new Error("No Spotify match found.");
+    }
+
+    return normalizeSpotifyTrack(firstTrack);
+  } catch (error) {
+    const spotifyError = error.response?.data;
+    const message = spotifyError?.error?.message || spotifyError?.error_description || error.message;
+
+    throw new Error(`Failed to search Spotify track: ${message}`);
+  }
+}
+
 //helper function to gain a token from Spotify in order to be able to view their track meta data.
 export async function getSpotifyAccessToken() {
   //these two variables are being read from .env
@@ -74,7 +113,8 @@ export function normalizeSpotifyTrack(track) {
   const platformTrackId = track.id;
   const sourceUrl = track.external_urls?.spotify;
   const title = track.name;
-  const primaryArtist = track.artists?.[0]?.name;
+  const artistNames = track.artists?.map((artist) => artist.name).filter(Boolean) ?? [];
+  const primaryArtist = artistNames[0] ?? "";
   const albumName = track.album?.name;
   const durationMs = track.duration_ms;
   const isrc = track.external_ids?.isrc;
@@ -85,6 +125,7 @@ export function normalizeSpotifyTrack(track) {
     sourceUrl,
     title,
     primaryArtist,
+    artistNames,
     albumName,
     durationMs,
     isrc,
@@ -128,6 +169,14 @@ export function detectSourceService(url) {
 
     if (hostname.includes("spotify.com")) {
       return "spotify";
+    }
+
+    if(
+      hostname.includes("youtube.com") ||
+      hostname.includes("music.youtube.com") ||
+      hostname === "youtu.be"
+    ) {
+      return "youtube";
     }
 
     if (hostname.includes("music.apple.com")) {

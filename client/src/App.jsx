@@ -1,7 +1,6 @@
 import { Routes, Route, Link, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-
 //
 const API_BASE = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/$/, "");
 
@@ -127,10 +126,106 @@ function AuthScreen({ mode, setAuthToken, authUser, setAuthUser, onLogout }) {
 }
 
 function DashboardPage({ authUser, onLogout }) {
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [targetService, setTargetService] = useState("youtube");
+  const [convertError, setConvertError] = useState("");
+  const [convertResult, setConvertResult] = useState(null);
+  const [isConverting, setIsConverting] = useState(false);
+
+  async function handleConvertSubmit(event) {
+    event.preventDefault();
+    setConvertError("");
+    setConvertResult(null);
+    setIsConverting(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/convert`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sourceUrl, targetService }),
+      });
+
+      const data = await readJsonResponse(response);
+      setConvertResult(data);
+    } catch (error) {
+      setConvertError(error.message);
+    } finally {
+      setIsConverting(false);
+    }
+  }
+
   return (
     <main>
       <h1>Dashboard</h1>
       {authUser ? <p>Signed in as {authUser.email}</p> : null}
+      <form onSubmit={handleConvertSubmit}>
+        <label>
+          Source URL
+          <input
+            type="url"
+            value={sourceUrl}
+            onChange={(event) => setSourceUrl(event.target.value)}
+            placeholder={
+              targetService === "youtube"
+                ? "https://open.spotify.com/track/..."
+                : "https://www.youtube.com/watch?v=..."
+            }
+          />
+        </label>
+        <label>
+          Convert to
+          <select
+            value={targetService}
+            onChange={(event) => setTargetService(event.target.value)}
+          >
+            <option value="youtube">YouTube</option>
+            <option value="spotify">Spotify</option>
+          </select>
+        </label>
+
+        <button type="submit" disabled={isConverting || !sourceUrl.trim()}>
+          {isConverting
+            ? "Converting..."
+            : `Convert to ${targetService === "youtube" ? "YouTube" : "Spotify"}`}
+        </button>
+      </form>
+
+      {convertError ? <p style={{ color: "crimson" }}>{convertError}</p> : null}
+
+      {convertResult ? (
+        <section>
+          <h2>Conversion Result</h2>
+
+          <p>Source: {convertResult.sourceService}</p>
+          <p>Track: {convertResult.sourceTrack?.title}</p>
+          <p>Artist: {convertResult.sourceTrack?.primaryArtist}</p>
+
+          <p>Target: {convertResult.targetService}</p>
+          <p>Match: {convertResult.targetTrack?.title}</p>
+
+          {convertResult.targetService === "youtube" ? (
+            <p>Channel: {convertResult.targetTrack?.channelTitle}</p>
+          ) : (
+            <p>Artist: {convertResult.targetTrack?.primaryArtist}</p>
+          )}
+
+          <a
+            href={
+              convertResult.targetService === "youtube"
+                ? convertResult.targetTrack?.url
+                : convertResult.targetTrack?.sourceUrl
+            }
+            target="_blank"
+            rel="noreferrer"
+          >
+            {convertResult.targetService === "youtube"
+              ? "Open YouTube result"
+              : "Open Spotify result"}
+          </a>
+        </section>
+      ) : null}
       <button type="button" onClick={onLogout}>
         Log Out
       </button>

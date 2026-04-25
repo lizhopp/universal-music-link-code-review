@@ -15,7 +15,8 @@ Do not use this file as a transcript. Historical conversation details belong in 
 
 ## Active Focus
 
-- After completing `#61`, the next recommended frontend slice is `#57` Build settings page
+- Deadline pivot: Apple developer-account approval is still blocked, so the MVP is moving from Spotify -> Apple Music to Spotify -> YouTube.
+- Settings/history/preferences are no longer the next safest slice for the deadline. The next work should be the smallest conversion demo path.
 
 ## Current Status
 
@@ -71,33 +72,59 @@ Do not use this file as a transcript. Historical conversation details belong in 
 - Live project access is working again from this machine:
   - `gh project field-list 1 --owner @me`
   - `gh project item-list 1 --owner @me --limit 200`
+- Pivot review on 2026-04-24 found:
+  - current code has Spotify URL detection, Spotify track-ID extraction, Spotify metadata fetch, and Spotify normalization in `server/utils/spotify.js`
+  - `server/utils/youtube.js` now supports both:
+    - YouTube target search from normalized Spotify metadata
+    - YouTube source normalization for reverse `YouTube -> Spotify` conversion
+  - `/convert` now accepts `sourceUrl` and `targetService`, branches by source platform, and returns both `sourceTrack` and `targetTrack`
+  - there is no Apple API client implemented yet, so the pivot does not require removing completed Apple code
+  - `server/db/seed.js` still seeds Spotify and Apple Music only
+  - README still describes Spotify + Apple Music as MVP
+  - board issue `#21` Setup Apple Music API client is `In Progress`
+  - board issue `#22` Search Apple Music for track is `Ready`
+  - board issue `#67` Test valid Spotify -> Apple conversion is `Ready`
+  - board issue `#80` Add YouTube Music support is `Ready`, but should become core MVP work for the pivot
 
 ## Next Exact Step
 
-- Start `#57` Build settings page as the next dependency-safe slice:
-  - reuse the existing protected-route pattern
-  - create a small protected settings page component and route
-  - keep this ticket page-shell only
-  - leave the dropdown/backend wiring to follow-up issues `#58` and `#59`
+- The current local conversion demo path is now verified in both directions:
+  - Spotify track URL input -> YouTube match
+  - YouTube video URL input -> Spotify match
+  - dashboard selector + result rendering work against the local backend contract
+- Next safest move for the deadline demo:
+  - freeze the matcher logic unless a new real failing track appears
+  - update README and any issue/board wording that still describes Apple Music as the active MVP target
+  - document deployment env vars and production behavior for the bidirectional YouTube pivot
 
 ## After That
 
-- verify:
-  - `/` redirects where expected
-  - logged-out access to the protected route redirects to `/login`
-  - logged-in access renders the protected page
-  - refresh on the protected route restores the session correctly
-- repeated refreshes do not remove a valid token because of a cached `304` response
-- repeated refreshes do not remove a valid token because of aborted/canceled in-flight restore requests
-- decide whether to do `#60` Add navigation bar immediately after `#57`, or wait until there are more protected pages to navigate between
-- decide whether `#7` should stay open for the remaining non-auth pages called out in the issue body
+- Defer until after the conversion demo is working:
+  - `#52`-`#54` history UI
+  - `#55`-`#59` preferences/settings
+  - `#81` browser extension
+  - `#82` copy-to-clipboard
+  - `#83` rate limiting
+  - `#84` recommendations/social feed
+  - `#85` collaborative playlist/live-update idea
+- Keep deployment work near the end, not after every small feature:
+  - `#72` prepare production env vars
+  - `#74` deploy backend
+  - `#75` deploy frontend
+  - `#76` connect frontend to deployed backend
+  - `#77` test live deployment
+  - `#78` write deployment steps
 
 ## Files In Play
 
 - `client/src/App.jsx`
 - `client/src/main.jsx`
+- `server/api/convert.js`
 - `server/api/users.js`
 - `server/middleware/getUserFromToken.js`
+- `server/utils/spotify.js`
+- `server/utils/youtube.js`
+- `server/db/seed.js`
 - `STUDY_PLAN.md`
 - `README.md`
 - `CURRENT_HANDOFF.md`
@@ -131,15 +158,27 @@ Do not use this file as a transcript. Historical conversation details belong in 
 - authenticated users are redirected away from `/register` and `/login`
 - the unused `authToken` prop has been removed from the `AuthScreen` route elements
 - `#61` has been verified locally and is now aligned live as closed/done
+- `#16` through `#20` are `Done` on the project board
+- `#12`, `#13`, `#14`, `#15`, `#23`, `#24`, `#25`, `#26`, `#27`, and `#34` are still `Ready` and become part of the stripped conversion-demo path
+- YouTube Data API docs confirm public-data reads can use an API key, while `search.list` costs 100 quota units and `videos.list` costs 1 quota unit
+- `POST /convert` now works locally for the one-way Spotify -> YouTube slice and returns `{ sourceService, targetService, sourceTrack, targetTrack }`
+- the dashboard conversion form works locally against the local backend after setting `client/.env.local` to `VITE_API_URL=http://localhost:3000`
+- the improved YouTube scorer fixed at least one previously bad mismatch case when retesting the same Spotify track
+- broader local retesting now checks out for the current one-way Spotify -> YouTube matcher
+- `/convert` now supports both `spotify -> youtube` and `youtube -> spotify` locally through the dashboard
+- reverse normalization fixes now cover at least these edge cases:
+  - camel-cased VEVO channel names
+  - Unicode title separators (`-`, `–`, `—`)
+  - trailing `Official` channel branding
+- recent manual edge-case testing for `YouTube -> Spotify` now checks out locally
 
 ## Open Questions
 
-- Should `#7` be considered complete now that router wiring, auth routes, and a 404 route exist, or does the issue still require additional non-auth pages?
-- Should `/` stay a redirect-only route for now, or eventually become a true landing page?
-- Should `#62` remain treated as done once logout ownership finishes moving into `App` for the protected-route refactor?
-- Should cache prevention live only in the frontend fetch for now, or also be added to the backend `/users/me` response headers as hardening?
-- Should the restore effect use `AbortController`, an `isActive` flag, or both for the safest request-cancel handling?
-- Should `#60` be done after `#57`, or after both settings and history pages exist?
+- Should issue `#80` be rewritten/moved from Stretch Goal to Core Conversion for the new MVP?
+- Should Apple issues `#21`, `#22`, and `#67` be moved to blocked/post-MVP instead of staying in active work?
+- Should the seed data keep Apple Music as inactive/post-MVP, or replace Apple with YouTube for the deadline build?
+- Should `/` become the conversion landing page immediately, replacing the current redirect-only route?
+- Should the target link be a standard YouTube URL or a `music.youtube.com/watch?v=...` URL for the demo?
 
 ## Handoff Update Rule
 
