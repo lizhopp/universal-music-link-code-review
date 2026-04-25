@@ -24,10 +24,18 @@ export default async function getUserFromToken(req, res, next) {
         const { id } = verifyToken(token);
         //used the id to grab the user from the database
         const user = await getUserById(id);
+
+        // WHY (Functionality): a token for a deleted user should fail auth immediately so protected routes do not continue with an invalid session.
+        if (!user) {
+            return res.status(401).json({
+                message: "Invalid token."
+            });
+        }
+
         //places the user object into req.user
         req.user = user;
-        //continues to next step of routing
-        next();
+        // WHY (Code Style): return here so this branch exits explicitly, matching the style of every other branch in this function and preventing accidental fallthrough if code is added later.
+        return next();
     //if there is an error retrieving the user from the DB, in jwt verification, malformed token payload, it's handled gracefully with the catch by responding with a json message
     } catch {
         return res.status(401).json({

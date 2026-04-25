@@ -15,12 +15,20 @@ function serializedUser(user) {
     }
 }
 
+function normalizeCredentials(body) {
+    // WHY (Code Style + Functionality): one shared normalization path keeps register/login behavior consistent and prevents subtle mismatches (like casing/whitespace) between endpoints.
+    return {
+        email: body.email?.trim().toLowerCase(),
+        password: body.password,
+    };
+}
+
 
 
 
 router.post('/register', requireBody(['email', 'password']), async (req, res) => {
-    const email = req.body.email?.trim().toLowerCase();
-    const password = req.body.password;
+    // WHY (Functionality): register should normalize credentials exactly the same way login does, so one account format behaves predictably in both flows.
+    const { email, password } = normalizeCredentials(req.body);
 
     if (!email || !password) {
         return res.status(400).json({
@@ -46,8 +54,8 @@ router.post('/register', requireBody(['email', 'password']), async (req, res) =>
 });
 
 router.post('/login', requireBody(['email', 'password']), async (req, res) => {
-    const email = req.body.email?.trim().toLowerCase();
-    const password = req.body.password;
+    // WHY (Functionality): using the same normalization as register prevents avoidable login failures caused by email casing or trailing spaces.
+    const { email, password } = normalizeCredentials(req.body);
 
     if (!email || !password) {
         return res.status(400).json({
@@ -73,6 +81,9 @@ router.post('/login', requireBody(['email', 'password']), async (req, res) => {
 });
 
 router.get('/me', async (req,res) =>{
+    // WHY (Functionality): auth/session endpoints should not be cached, or stale responses can make users look logged out when their token is still valid.
+    res.set('Cache-Control', 'no-store');
+
     if(!req.user){
         return res.status(401).json({
             message: 'Authentication required.',
