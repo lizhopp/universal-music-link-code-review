@@ -4388,6 +4388,35 @@ From now on, entries include detailed assistant outputs (not only summaries).
   Reference:
   - MDN testing overview: https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Testing/Introduction
 
+### 2026-04-24 23:00:23 CDT
+- User:
+  Said the matcher work was committed and wanted to get it ready to move forward.
+- Codex:
+  Verified the new commit landed on `main`:
+  - `git log --oneline -1`
+  - latest commit: `43ef684 Improve YouTube matching heuristics`
+
+  Re-checked the worktree:
+  - `git status --short --branch`
+  - result: `main` is currently `ahead 1` of `origin/main`
+
+  Commit-readiness assessment:
+  - the matcher code and study/history logs are committed
+  - `git diff --check` had already passed before commit
+  - `node --check server/utils/youtube.js` had already passed before commit
+  - the 5-case mixed regression batch had already passed before commit
+  - the only remaining local file was `CURRENT_HANDOFF.md`, which was stale relative to the new committed checkpoint
+
+  Continuity update:
+  - updated `CURRENT_HANDOFF.md` so the next machine/session reflects:
+    - latest commit `43ef684`
+    - local `main` ahead of remote by one commit
+    - matcher fixes verified
+    - next recommended feature path returns to conversion-history backend work (`#49` -> `#51`)
+
+  Practical next step:
+  - if this commit needs to exist on the other machine, push `main` before switching
+
 ### 2026-04-24 22:56:20 CDT
 - User:
   Agreed to run the mixed regression batch after the recent YouTube-matcher heuristic changes.
