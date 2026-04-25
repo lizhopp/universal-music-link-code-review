@@ -85,6 +85,13 @@ Do not use this file as a transcript. Historical conversation details belong in 
   - board issue `#22` Search Apple Music for track is `Ready`
   - board issue `#67` Test valid Spotify -> Apple conversion is `Ready`
   - board issue `#80` Add YouTube Music support is `Ready`, but should become core MVP work for the pivot
+  - live Render backend health check is passing at `https://universal-music-link.onrender.com/health`
+  - live frontend bundle at `https://universal-music-link-frontend.onrender.com` is built against the backend origin `https://universal-music-link.onrender.com`
+  - live frontend bundle is using the current convert request shape `{ sourceUrl, targetService }`
+  - production CORS currently allows `https://universal-music-link-frontend.onrender.com`
+  - live production `POST /convert` now passes direct endpoint tests in both directions:
+    - `spotify -> youtube`
+    - `youtube -> spotify`
 
 ## Next Exact Step
 
@@ -95,7 +102,7 @@ Do not use this file as a transcript. Historical conversation details belong in 
 - Next safest move for the deadline demo:
   - freeze the matcher logic unless a new real failing track appears
   - update README and any issue/board wording that still describes Apple Music as the active MVP target
-  - document deployment env vars and production behavior for the bidirectional YouTube pivot
+  - keep README deferred until the finish line, but continue keeping operational deploy docs aligned
 
 ## After That
 
@@ -171,6 +178,10 @@ Do not use this file as a transcript. Historical conversation details belong in 
   - Unicode title separators (`-`, `–`, `—`)
   - trailing `Official` channel branding
 - recent manual edge-case testing for `YouTube -> Spotify` now checks out locally
+- live Render backend health endpoint returns `200`
+- live production frontend is wired to the backend origin `https://universal-music-link.onrender.com`
+- live production `/convert` route accepts the new request contract and now returns successful conversion payloads in both directions
+- `server/.env.example` now includes the current backend env set, including `YOUTUBE_API_KEY`
 
 ## Open Questions
 

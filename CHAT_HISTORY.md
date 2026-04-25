@@ -4068,3 +4068,85 @@ From now on, entries include detailed assistant outputs (not only summaries).
   References:
   - Spotify search endpoint: https://developer.spotify.com/documentation/web-api/reference/search
   - YouTube Data API `videos.list`: https://developers.google.com/youtube/v3/docs/videos/list
+
+### 2026-04-24 19:50:10 CDT
+- User:
+  Asked to verify production env vars and deployment behavior for the current `sourceUrl + targetService` contract.
+- Codex:
+  Verified the live Render deployment in three layers:
+  1. backend health
+     - `GET https://universal-music-link.onrender.com/health` returned `200 ok`
+     - this confirms the deployed backend has at least its startup-required env vars present:
+       - `DATABASE_URL`
+       - `JWT_SECRET`
+       - `CORS_ORIGIN`
+  2. backend `/convert` contract
+     - production backend does accept the current route shape and returns JSON errors from the live `/convert` route
+     - however the required third-party API env vars are missing in production right now:
+       - `Spotify -> YouTube` request returned `Failed to fetch Spotify track: Missing Spotify credentials.`
+       - `YouTube -> Spotify` request returned `Missing YouTube API key.`
+     - this means the deployed code path is reachable, but Render is missing:
+       - `SPOTIFY_CLIENT_ID`
+       - `SPOTIFY_CLIENT_SECRET`
+       - `YOUTUBE_API_KEY`
+  3. frontend production wiring
+     - fetched the deployed frontend bundle from `https://universal-music-link-frontend.onrender.com`
+     - confirmed the production build has the backend base URL baked in as:
+       - `https://universal-music-link.onrender.com`
+     - confirmed the deployed frontend is sending the current request body shape:
+       - `{ sourceUrl, targetService }`
+     - confirmed live backend CORS is currently allowing the deployed frontend origin:
+       - `Access-Control-Allow-Origin: https://universal-music-link-frontend.onrender.com`
+
+  Practical conclusion:
+  - production wiring for the new bidirectional contract is in place
+  - production conversion is still blocked by missing Render secrets, not by route shape or frontend/backend mismatch
+  - docs are currently stale:
+    - `server/.env.example` does not list `YOUTUBE_API_KEY`
+    - `README.md` still describes Apple Music as the active MVP
+
+  References:
+  - Render web services: https://render.com/docs/web-services
+  - Vite env variables: https://vite.dev/guide/env-and-mode.html
+
+### 2026-04-24 20:02:38 CDT
+- User:
+  Asked to retest the live deployment after updating production environment variables.
+- Codex:
+  Retested the live Render backend directly and confirmed the production conversion contract is now working:
+  - `GET https://universal-music-link.onrender.com/health` returned `200 ok`
+  - `POST /convert` with:
+    - `{"sourceUrl":"https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT","targetService":"youtube"}`
+    - returned `200` with a normalized Spotify source track and YouTube target pointing to `dQw4w9WgXcQ`
+  - `POST /convert` with:
+    - `{"sourceUrl":"https://www.youtube.com/watch?v=gGdGFtwCNBE","targetService":"spotify"}`
+    - returned `200` with a normalized YouTube source track and Spotify target pointing to track `003vvx7Niy0yvhvHt4a68B`
+
+  Updated the deployment assessment:
+  - production no longer appears blocked on missing third-party secrets
+  - the live backend, CORS setup, and current `{ sourceUrl, targetService }` route contract are all behaving correctly in direct endpoint tests
+  - the remaining deployment work is documentation alignment rather than runtime rescue
+
+  References:
+  - Render web services: https://render.com/docs/web-services
+  - MDN `fetch()` / JSON APIs: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+
+### 2026-04-24 20:10:51 CDT
+- User:
+  Reported that `server/.env.example` was updated, while intentionally deferring README changes until closer to the finish line.
+- Codex:
+  Verified that `server/.env.example` now includes the current backend/deployment env set:
+  - `DATABASE_URL`
+  - `JWT_SECRET`
+  - `SPOTIFY_CLIENT_ID`
+  - `SPOTIFY_CLIENT_SECRET`
+  - `YOUTUBE_API_KEY`
+  - `CORS_ORIGIN`
+  - `PORT`
+
+  Treated this as the correct narrow documentation cleanup for now:
+  - operational config docs are now aligned with the live contract
+  - README remains intentionally deferred until the broader product scope is closer to final
+
+  Reference:
+  - Vite env variables and deployment-time injection: https://vite.dev/guide/env-and-mode.html
