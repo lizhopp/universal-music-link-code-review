@@ -17,7 +17,6 @@ async function readJsonResponse(response) {
 }
 
 function AuthScreen({ mode, setAuthToken, setAuthUser }) {
-  const [authMessage, setAuthMessage] = useState("");
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
@@ -28,7 +27,6 @@ function AuthScreen({ mode, setAuthToken, setAuthUser }) {
   async function handleSubmit(event) {
     event.preventDefault();
     setAuthError("");
-    setAuthMessage("");
     setSubmitting(true);
 
     const path = mode === "register" ? "register" : "login";
@@ -47,7 +45,7 @@ function AuthScreen({ mode, setAuthToken, setAuthUser }) {
       setAuthToken(data.token);
       localStorage.setItem(TOKEN_KEY, data.token);
       setAuthUser(data.user);
-      setAuthMessage(data.message);
+      // WHY (Code Style): authMessage state was removed because setting authToken triggers an immediate route redirect — the success message never renders on screen before the component unmounts. Unused state adds noise to the component. The redirect itself signals success.
       setForm({
         email: "",
         password: "",
@@ -68,7 +66,6 @@ function AuthScreen({ mode, setAuthToken, setAuthUser }) {
 
         <Link to="/login">Login</Link>
       </div>
-      {authMessage ? <p>{authMessage}</p> : null}
       {authError ? <p style={{ color: "crimson" }}>{authError}</p> : null}
       <form onSubmit={handleSubmit}>
         <label>
@@ -323,7 +320,7 @@ export default function App() {
           return;
         }
 
-        console.log(error);
+        // WHY (Code Style): removed console.log — debug logs in shipped code expose internal error details in DevTools. Non-abort errors here (e.g. server temporarily unreachable) are treated as non-critical; the user stays in their current state until the next restore attempt.
       }
     }
 
@@ -342,6 +339,7 @@ export default function App() {
         element={<DashboardPage authUser={authUser} onLogout={handleLogout} />}
       />
 
+      {/* WHY (Documentation): this comment documents existing behavior — the route guard was already here. Noting it explicitly so the intent is clear: logged-in users are redirected away from /register and /login. authToken is the stored string; the restoreSession effect validates it against the server asynchronously. */}
       <Route
         path="/register"
         element={
