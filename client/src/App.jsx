@@ -125,9 +125,35 @@ function AuthScreen({ mode, setAuthToken, authUser, setAuthUser, onLogout }) {
   );
 }
 
+function getTargetServiceFromSourceUrl(sourceUrl) {
+  if (!sourceUrl.trim()) {
+    return "";
+  }
+
+  try {
+    const { hostname } = new URL(sourceUrl.trim());
+
+    if (hostname.includes("spotify.com")) {
+      return "youtube";
+    }
+
+    if (
+      hostname.includes("youtube.com") ||
+      hostname.includes("music.youtube.com") ||
+      hostname === "youtu.be"
+    ) {
+      return "spotify";
+    }
+
+    return "";
+  } catch {
+    return "";
+  }
+}
+
 function DashboardPage({ authUser, onLogout }) {
   const [sourceUrl, setSourceUrl] = useState("");
-  const [targetService, setTargetService] = useState("youtube");
+  const targetService = getTargetServiceFromSourceUrl(sourceUrl);
   const [convertError, setConvertError] = useState("");
   const [convertResult, setConvertResult] = useState(null);
   const [isConverting, setIsConverting] = useState(false);
@@ -136,6 +162,11 @@ function DashboardPage({ authUser, onLogout }) {
     event.preventDefault();
     setConvertError("");
     setConvertResult(null);
+
+    if (!targetService) {
+      setConvertError("Paste a Spotify or YouTube track URL.");
+      return;
+    }
     setIsConverting(true);
 
     try {
@@ -170,25 +201,28 @@ function DashboardPage({ authUser, onLogout }) {
             placeholder={
               targetService === "youtube"
                 ? "https://open.spotify.com/track/..."
-                : "https://www.youtube.com/watch?v=..."
+                : targetService === "spotify"
+                  ? "https://www.youtube.com/watch?v=..."
+                  : "Paste a Spotify or YouTube track URL"
             }
           />
         </label>
-        <label>
-          Convert to
-          <select
-            value={targetService}
-            onChange={(event) => setTargetService(event.target.value)}
-          >
-            <option value="youtube">YouTube</option>
-            <option value="spotify">Spotify</option>
-          </select>
-        </label>
-
-        <button type="submit" disabled={isConverting || !sourceUrl.trim()}>
+          <p>
+            {targetService === "youtube"
+              ? "Detected Spotify link. Converting to YouTube."
+              : targetService === "spotify"
+                ? "Detected YouTube link. Converting to Spotify."
+                : "Paste a Spotify or YouTube track URL to choose the target automatically."}
+          </p>
+        <button
+          type="submit"
+          disabled={isConverting || !sourceUrl.trim() || !targetService}
+        >
           {isConverting
             ? "Converting..."
-            : `Convert to ${targetService === "youtube" ? "YouTube" : "Spotify"}`}
+            : targetService
+              ? `Convert to ${targetService === "youtube" ? "YouTube" : "Spotify"}`
+              : "Paste a supported URL"}
         </button>
       </form>
 
